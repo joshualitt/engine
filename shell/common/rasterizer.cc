@@ -244,6 +244,64 @@ sk_sp<SkImage> DrawSnapshot(
 
   return nullptr;
 }
+sk_sp<SkImage> DrawGpuSnapshot(
+    GrDirectContext* context,
+    sk_sp<SkSurface> surface,
+    const std::function<void(SkCanvas*)>& draw_callback) {
+  if (surface == nullptr || surface->getCanvas() == nullptr) {
+    return nullptr;
+  }
+
+  draw_callback(surface->getCanvas());
+  surface->getCanvas()->flush();
+
+  sk_sp<SkImage> device_snapshot;
+  {
+    TRACE_EVENT0("flutter", "MakeDeviceSnpashot");
+    device_snapshot = surface->makeImageSnapshot();
+  }
+
+  if (device_snapshot == nullptr) {
+    return nullptr;
+  }
+  printf("foo\n");
+
+  // Take ownership of SkImage's backing texture.
+  auto color_type = device_snapshot->colorType();
+  auto alpha_type = device_snapshot->alphaType();
+  auto ref_color_space = device_snapshot->refColorSpace();
+
+  GrBackendTexture backing_texture;
+  SkImage::BackendTextureReleaseProc texture_release_callback;
+  {
+    TRACE_EVENT0("flutter", "MakeBackendTexture");
+    if (!SkImage::MakeBackendTextureFromSkImage(context, std::move(device_snapshot), &backing_texture, &texture_release_callback)) {
+        return nullptr;
+    }
+  }
+  printf("goo\n");
+  sk_sp<SkImage> new_device_snapshot;
+  {
+    TRACE_EVENT0("flutter", "MoveBackendTexture");
+    new_device_snapshot = SkImage::MakeFromTexture(context, backing_texture,
+                             kTopLeft_GrSurfaceOrigin, color_type,
+                             alpha_type, ref_color_space);
+  }
+  printf("boo %p\n", new_device_snapshot.get());
+
+  if (new_device_snapshot == nullptr) {
+    return nullptr;
+  }
+
+  {
+    TRACE_EVENT0("flutter", "DeviceHostTransfer");
+    if (auto raster_image = new_device_snapshot->makeRasterImage()) {
+      return raster_image;
+    }
+  }
+
+  return nullptr;
+}
 }  // namespace
 
 sk_sp<SkImage> Rasterizer::DoMakeRasterSnapshot(
@@ -271,7 +329,7 @@ sk_sp<SkImage> Rasterizer::DoMakeRasterSnapshot(
                 return;
               }
 
-              GrRecordingContext* context = surface_->GetContext();
+              GrDirectContext* context = surface_->GetContext();
               auto max_size = context->maxRenderTargetSize();
               double scale_factor = std::min(
                   1.0, static_cast<double>(max_size) /
@@ -295,7 +353,7 @@ sk_sp<SkImage> Rasterizer::DoMakeRasterSnapshot(
                                               image_info        // image info
                   );
               surface->getCanvas()->scale(scale_factor, scale_factor);
-              result = DrawSnapshot(surface, draw_callback);
+              result = DrawGpuSnapshot(context, surface, draw_callback);
             }));
   }
 
