@@ -7,6 +7,7 @@
 
 #include "third_party/skia/include/core/SkImage.h"
 #include "third_party/skia/include/core/SkPicture.h"
+#include "third_party/skia/include/gpu/GrBackendSurface.h"
 
 namespace flutter {
 
@@ -35,6 +36,11 @@ class SnapshotDelegate {
                                              SkISize picture_size) = 0;
 
   virtual sk_sp<SkImage> ConvertToRasterImage(sk_sp<SkImage> image) = 0;
+
+
+  // TODO
+  static sk_sp<SkImage> RenderGpuSnapshot(GrDirectContext* context,
+                                 std::shared_ptr<SnapshotDelegate::GpuSnapshot> gpu_snapshot);
 };
 
 }  // namespace flutter

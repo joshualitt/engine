@@ -18,33 +18,6 @@
 #include "third_party/tonic/logging/dart_invoke.h"
 
 namespace flutter {
-namespace {
-  sk_sp<SkImage> RenderGpuSnapshot(GrDirectContext* context,
-                                   std::shared_ptr<SnapshotDelegate::GpuSnapshot> gpu_snapshot) {
-      sk_sp<SkImage> new_device_snapshot;
-    {
-      TRACE_EVENT0("flutter", "MoveBackendTexture");
-      new_device_snapshot = SkImage::MakeFromTexture(context, gpu_snapshot->backing_texture,
-                               kTopLeft_GrSurfaceOrigin, gpu_snapshot->color_type,
-                               gpu_snapshot->alpha_type, gpu_snapshot->color_space);
-    }
-    printf("boo %p\n", new_device_snapshot.get());
-
-    if (new_device_snapshot == nullptr) {
-      return nullptr;
-    }
-
-    {
-      TRACE_EVENT0("flutter", "DeviceHostTransfer");
-      if (auto raster_image = new_device_snapshot->makeRasterImage()) {
-        return raster_image;
-      }
-    }
-
-    return nullptr;
-  }
-
-}  // namespace
 
 IMPLEMENT_WRAPPERTYPEINFO(ui, Picture);
 
@@ -160,8 +133,7 @@ Dart_Handle Picture::RasterizeToImage(sk_sp<SkPicture> picture,
             auto resource_context = io_manager->GetResourceContext();
             sk_sp<SkImage> raster_image;
             if (resource_context) {
-              printf("!! RENDERING\n");
-              raster_image = RenderGpuSnapshot(resource_context.get(), gpu_raster_image);
+              raster_image = SnapshotDelegate::RenderGpuSnapshot(resource_context.get(), gpu_raster_image);
               printf("Transferred %p\n", raster_image.get());
             } else {
               printf("FAIL FAIL\n");;
