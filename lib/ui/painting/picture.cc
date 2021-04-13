@@ -18,6 +18,32 @@
 #include "third_party/tonic/logging/dart_invoke.h"
 
 namespace flutter {
+namespace {
+  sk_sp<SkImage> RenderGpuSnapshot(GrDirectContext* context,
+                                   std::shared_ptr<SnapshotDelegate::GpuSnapshot> gpu_snapshot) {
+      sk_sp<SkImage> new_device_snapshot;
+    {
+      TRACE_EVENT0("flutter", "MoveBackendTexture");
+      new_device_snapshot = SkImage::MakeFromTexture(context, gpu_snapshot->backing_texture,
+                               kTopLeft_GrSurfaceOrigin, gpu_snapshot->color_type,
+                               gpu_snapshot->alpha_type, gpu_snapshot->color_space);
+    }
+    printf("boo %p\n", new_device_snapshot.get());
+
+    if (new_device_snapshot == nullptr) {
+      return nullptr;
+    }
+
+    {
+      TRACE_EVENT0("flutter", "DeviceHostTransfer");
+      if (auto raster_image = new_device_snapshot->makeRasterImage()) {
+        return raster_image;
+      }
+    }
+
+    return nullptr;
+  }
+}  // namespace
 
 IMPLEMENT_WRAPPERTYPEINFO(ui, Picture);
 
@@ -83,6 +109,8 @@ Dart_Handle Picture::RasterizeToImage(sk_sp<SkPicture> picture,
   auto unref_queue = dart_state->GetSkiaUnrefQueue();
   auto ui_task_runner = dart_state->GetTaskRunners().GetUITaskRunner();
   auto raster_task_runner = dart_state->GetTaskRunners().GetRasterTaskRunner();
+  auto io_task_runner = dart_state->GetTaskRunners().GetIOTaskRunner();
+  fml::WeakPtr<IOManager> io_manager = dart_state->GetIOManager();
   auto snapshot_delegate = dart_state->GetSnapshotDelegate();
 
   // We can't create an image on this task runner because we don't have a
@@ -122,13 +150,25 @@ Dart_Handle Picture::RasterizeToImage(sk_sp<SkPicture> picture,
   // Kick things off on the raster rask runner.
   fml::TaskRunner::RunNowOrPostTask(
       raster_task_runner,
-      [ui_task_runner, snapshot_delegate, picture, picture_bounds, ui_task] {
-        sk_sp<SkImage> raster_image =
-            snapshot_delegate->MakeRasterSnapshot(picture, picture_bounds);
-
-        fml::TaskRunner::RunNowOrPostTask(
-            ui_task_runner,
-            [ui_task, raster_image]() { ui_task(raster_image); });
+      [io_task_runner, io_manager, ui_task_runner, snapshot_delegate, picture, picture_bounds, ui_task] {
+        auto gpu_raster_image =
+            snapshot_delegate->MakeGpuSnapshot(picture, picture_bounds);
+        
+        fml::TaskRunner::RunNowOrPostTask(io_task_runner, [ui_task_runner, ui_task,
+                                                           io_manager, gpu_raster_image] {
+          auto resource_context = io_manager->GetResourceContext();
+          sk_sp<SkImage> raster_image;
+          if (resource_context && gpu_raster_image) {
+            printf("RENDERING\n");
+            raster_image = RenderGpuSnapshot(resource_context.get(), gpu_raster_image);
+            printf("Transferred %p\n", raster_image.get());
+          } else {
+            // TODO
+          }
+          fml::TaskRunner::RunNowOrPostTask(
+              ui_task_runner,
+              [ui_task, raster_image]() { ui_task(raster_image); });
+        });
       });
 
   return Dart_Null();

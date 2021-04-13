@@ -466,6 +466,10 @@ class Rasterizer final : public SnapshotDelegate {
                                     SkISize picture_size) override;
 
   // |SnapshotDelegate|
+  std::shared_ptr<SnapshotDelegate::GpuSnapshot> MakeGpuSnapshot(sk_sp<SkPicture> picture,
+                                        SkISize picture_size) override;
+
+  // |SnapshotDelegate|
   sk_sp<SkImage> ConvertToRasterImage(sk_sp<SkImage> image) override;
 
   sk_sp<SkData> ScreenshotLayerTreeAsImage(
@@ -475,6 +479,11 @@ class Rasterizer final : public SnapshotDelegate {
       bool compressed);
 
   sk_sp<SkImage> DoMakeRasterSnapshot(
+      SkISize size,
+      std::function<void(SkCanvas*)> draw_callback);
+
+
+  std::shared_ptr<SnapshotDelegate::GpuSnapshot> DoMakeGpuSnapshot(
       SkISize size,
       std::function<void(SkCanvas*)> draw_callback);
 
