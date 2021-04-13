@@ -258,7 +258,7 @@ std::shared_ptr<SnapshotDelegate::GpuSnapshot> Rasterizer::DoMakeGpuSnapshot(
     // Raster surface is fine if there is no on screen surface. This might
     // happen in case of software rendering.
     // TODO
-    printf("FAIL\n");
+    printf("FALLING BACK\n");
   } else {
     SkImageInfo image_info = SkImageInfo::MakeN32Premul(
       size.width(), size.height(), SkColorSpace::MakeSRGB());
@@ -266,7 +266,7 @@ std::shared_ptr<SnapshotDelegate::GpuSnapshot> Rasterizer::DoMakeGpuSnapshot(
         fml::SyncSwitch::Handlers()
             .SetIfTrue([&] {
               // TODO
-              printf("FAIL\n");
+              printf("FALLING BACK\n");
             })
             .SetIfFalse([&] {
               auto context_switch = surface_->MakeRenderContextCurrent();
@@ -343,6 +343,13 @@ sk_sp<SkImage> DrawSnapshot(
 
   return nullptr;
 }
+
+sk_sp<SkImage> DrawSnapshotOnHost(
+  const SkImageInfo& image_info,
+  const std::function<void(SkCanvas*)>& draw_callback) {
+  sk_sp<SkSurface> surface = SkSurface::MakeRaster(image_info);
+  return DrawSnapshot(surface, draw_callback);
+}
 /*
 sk_sp<SkImage> DrawGpuSnapshot(
     GrDirectContext* context,
@@ -414,14 +421,12 @@ sk_sp<SkImage> Rasterizer::DoMakeRasterSnapshot(
   if (surface_ == nullptr || surface_->GetContext() == nullptr) {
     // Raster surface is fine if there is no on screen surface. This might
     // happen in case of software rendering.
-    sk_sp<SkSurface> surface = SkSurface::MakeRaster(image_info);
-    result = DrawSnapshot(surface, draw_callback);
+    return DrawSnapshotOnHost(image_info, draw_callback);
   } else {
     delegate_.GetIsGpuDisabledSyncSwitch()->Execute(
         fml::SyncSwitch::Handlers()
             .SetIfTrue([&] {
-              sk_sp<SkSurface> surface = SkSurface::MakeRaster(image_info);
-              result = DrawSnapshot(surface, draw_callback);
+              return DrawSnapshotOnHost(image_info, draw_callback);
             })
             .SetIfFalse([&] {
               auto context_switch = surface_->MakeRenderContextCurrent();
@@ -463,6 +468,16 @@ sk_sp<SkImage> Rasterizer::DoMakeRasterSnapshot(
 sk_sp<SkImage> Rasterizer::MakeRasterSnapshot(sk_sp<SkPicture> picture,
                                               SkISize picture_size) {
   return DoMakeRasterSnapshot(picture_size,
+                              [picture = std::move(picture)](SkCanvas* canvas) {
+                                canvas->drawPicture(picture);
+                              });
+}
+
+sk_sp<SkImage> Rasterizer::MakeRasterSnapshotOnHost(sk_sp<SkPicture> picture,
+                                              SkISize picture_size) {
+  SkImageInfo image_info = SkImageInfo::MakeN32Premul(
+      picture_size.width(), picture_size.height(), SkColorSpace::MakeSRGB());
+  return DrawSnapshotOnHost(image_info,
                               [picture = std::move(picture)](SkCanvas* canvas) {
                                 canvas->drawPicture(picture);
                               });

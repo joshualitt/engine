@@ -43,6 +43,7 @@ namespace {
 
     return nullptr;
   }
+
 }  // namespace
 
 IMPLEMENT_WRAPPERTYPEINFO(ui, Picture);
@@ -153,22 +154,28 @@ Dart_Handle Picture::RasterizeToImage(sk_sp<SkPicture> picture,
       [io_task_runner, io_manager, ui_task_runner, snapshot_delegate, picture, picture_bounds, ui_task] {
         auto gpu_raster_image =
             snapshot_delegate->MakeGpuSnapshot(picture, picture_bounds);
-        
-        fml::TaskRunner::RunNowOrPostTask(io_task_runner, [ui_task_runner, ui_task,
-                                                           io_manager, gpu_raster_image] {
-          auto resource_context = io_manager->GetResourceContext();
-          sk_sp<SkImage> raster_image;
-          if (resource_context && gpu_raster_image) {
-            printf("RENDERING\n");
-            raster_image = RenderGpuSnapshot(resource_context.get(), gpu_raster_image);
-            printf("Transferred %p\n", raster_image.get());
-          } else {
-            // TODO
-          }
+        if (gpu_raster_image) {
+          fml::TaskRunner::RunNowOrPostTask(io_task_runner, [ui_task_runner, ui_task,
+                                                             io_manager, gpu_raster_image] {
+            auto resource_context = io_manager->GetResourceContext();
+            sk_sp<SkImage> raster_image;
+            if (resource_context) {
+              printf("!! RENDERING\n");
+              raster_image = RenderGpuSnapshot(resource_context.get(), gpu_raster_image);
+              printf("Transferred %p\n", raster_image.get());
+            } else {
+              printf("FAIL FAIL\n");;
+            }
+            fml::TaskRunner::RunNowOrPostTask(
+                ui_task_runner,
+                [ui_task, raster_image]() { ui_task(raster_image); });
+          });
+        } else {
+          auto raster_image = snapshot_delegate->MakeRasterSnapshotOnHost(picture, picture_bounds);
           fml::TaskRunner::RunNowOrPostTask(
               ui_task_runner,
               [ui_task, raster_image]() { ui_task(raster_image); });
-        });
+        }
       });
 
   return Dart_Null();

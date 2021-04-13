@@ -27,6 +27,10 @@ class SnapshotDelegate {
   virtual sk_sp<SkImage> MakeRasterSnapshot(sk_sp<SkPicture> picture,
                                             SkISize picture_size) = 0;
 
+
+  virtual sk_sp<SkImage> MakeRasterSnapshotOnHost(sk_sp<SkPicture> picture,
+                                                  SkISize picture_size) = 0;
+
   virtual std::shared_ptr<GpuSnapshot> MakeGpuSnapshot(sk_sp<SkPicture> picture,
                                              SkISize picture_size) = 0;
 

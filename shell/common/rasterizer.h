@@ -466,6 +466,10 @@ class Rasterizer final : public SnapshotDelegate {
                                     SkISize picture_size) override;
 
   // |SnapshotDelegate|
+  sk_sp<SkImage> MakeRasterSnapshotOnHost(sk_sp<SkPicture> picture,
+                                                  SkISize picture_size) override;
+
+  // |SnapshotDelegate|
   std::shared_ptr<SnapshotDelegate::GpuSnapshot> MakeGpuSnapshot(sk_sp<SkPicture> picture,
                                         SkISize picture_size) override;
 
