@@ -35,8 +35,8 @@ class SnapshotDelegate {
   virtual std::shared_ptr<GpuSnapshot> MakeGpuSnapshot(sk_sp<SkPicture> picture,
                                              SkISize picture_size) = 0;
 
-  virtual sk_sp<SkImage> ConvertToRasterImage(sk_sp<SkImage> image) = 0;
-
+  virtual std::shared_ptr<GpuSnapshot> ConvertToRasterImage(sk_sp<SkImage> image) = 0;
+  virtual sk_sp<SkImage> ConvertToRasterImageOnHost(sk_sp<SkImage> image) = 0;
 
   // TODO
   static sk_sp<SkImage> RenderGpuSnapshot(GrDirectContext* context,

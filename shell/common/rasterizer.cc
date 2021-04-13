@@ -350,65 +350,6 @@ sk_sp<SkImage> DrawSnapshotOnHost(
   sk_sp<SkSurface> surface = SkSurface::MakeRaster(image_info);
   return DrawSnapshot(surface, draw_callback);
 }
-/*
-sk_sp<SkImage> DrawGpuSnapshot(
-    GrDirectContext* context,
-    sk_sp<SkSurface> surface,
-    const std::function<void(SkCanvas*)>& draw_callback) {
-  if (surface == nullptr || surface->getCanvas() == nullptr) {
-    return nullptr;
-  }
-
-  draw_callback(surface->getCanvas());
-  surface->getCanvas()->flush();
-
-  sk_sp<SkImage> device_snapshot;
-  {
-    TRACE_EVENT0("flutter", "MakeDeviceSnpashot");
-    device_snapshot = surface->makeImageSnapshot();
-  }
-
-  if (device_snapshot == nullptr) {
-    return nullptr;
-  }
-  printf("foo\n");
-
-  // Take ownership of SkImage's backing texture.
-  auto color_type = device_snapshot->colorType();
-  auto alpha_type = device_snapshot->alphaType();
-  auto ref_color_space = device_snapshot->refColorSpace();
-
-  GrBackendTexture backing_texture;
-  SkImage::BackendTextureReleaseProc texture_release_callback;
-  {
-    TRACE_EVENT0("flutter", "MakeBackendTexture");
-    if (!SkImage::MakeBackendTextureFromSkImage(context, std::move(device_snapshot), &backing_texture, &texture_release_callback)) {
-        return nullptr;
-    }
-  }
-  printf("goo\n");
-  sk_sp<SkImage> new_device_snapshot;
-  {
-    TRACE_EVENT0("flutter", "MoveBackendTexture");
-    new_device_snapshot = SkImage::MakeFromTexture(context, backing_texture,
-                             kTopLeft_GrSurfaceOrigin, color_type,
-                             alpha_type, ref_color_space);
-  }
-  printf("boo %p\n", new_device_snapshot.get());
-
-  if (new_device_snapshot == nullptr) {
-    return nullptr;
-  }
-
-  {
-    TRACE_EVENT0("flutter", "DeviceHostTransfer");
-    if (auto raster_image = new_device_snapshot->makeRasterImage()) {
-      return raster_image;
-    }
-  }
-
-  return nullptr;
-}*/
 }  // namespace
 
 sk_sp<SkImage> Rasterizer::DoMakeRasterSnapshot(
@@ -483,7 +424,7 @@ sk_sp<SkImage> Rasterizer::MakeRasterSnapshotOnHost(sk_sp<SkPicture> picture,
                               });
 }
 
-sk_sp<SkImage> Rasterizer::ConvertToRasterImage(sk_sp<SkImage> image) {
+std::shared_ptr<SnapshotDelegate::GpuSnapshot> Rasterizer::ConvertToRasterImage(sk_sp<SkImage> image) {
   TRACE_EVENT0("flutter", __FUNCTION__);
 
   // If the rasterizer does not have a surface with a GrContext, then it will
@@ -498,11 +439,35 @@ sk_sp<SkImage> Rasterizer::ConvertToRasterImage(sk_sp<SkImage> image) {
   }
 
   SkISize image_size = image->dimensions();
-  return DoMakeRasterSnapshot(image_size,
+  return DoMakeGpuSnapshot(image_size,
                               [image = std::move(image)](SkCanvas* canvas) {
                                 canvas->drawImage(image, 0, 0);
                               });
 }
+
+sk_sp<SkImage> Rasterizer::ConvertToRasterImageOnHost(sk_sp<SkImage> image) {
+  TRACE_EVENT0("flutter", __FUNCTION__);
+
+  // If the rasterizer does not have a surface with a GrContext, then it will
+  // be unable to render a cross-context SkImage.  The caller will need to
+  // create the raster image on the IO thread.
+  if (surface_ == nullptr || surface_->GetContext() == nullptr) {
+    return nullptr;
+  }
+
+  if (image == nullptr) {
+    return nullptr;
+  }
+
+  SkISize image_size = image->dimensions();
+  SkImageInfo image_info = SkImageInfo::MakeN32Premul(
+      image_size.width(), image_size.height(), SkColorSpace::MakeSRGB());
+  return DrawSnapshotOnHost(image_info,
+                              [image = std::move(image)](SkCanvas* canvas) {
+                                canvas->drawImage(image, 0, 0);
+                              });
+}
+
 
 RasterStatus Rasterizer::DoDraw(
     std::unique_ptr<flutter::LayerTree> layer_tree) {

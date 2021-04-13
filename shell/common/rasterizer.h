@@ -474,7 +474,10 @@ class Rasterizer final : public SnapshotDelegate {
                                         SkISize picture_size) override;
 
   // |SnapshotDelegate|
-  sk_sp<SkImage> ConvertToRasterImage(sk_sp<SkImage> image) override;
+  std::shared_ptr<SnapshotDelegate::GpuSnapshot> ConvertToRasterImage(sk_sp<SkImage> image) override;
+  
+  // |SnapshotDelegate|
+  sk_sp<SkImage> ConvertToRasterImageOnHost(sk_sp<SkImage> image) override;
 
   sk_sp<SkData> ScreenshotLayerTreeAsImage(
       flutter::LayerTree* tree,
