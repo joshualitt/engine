@@ -124,26 +124,41 @@ Dart_Handle Picture::RasterizeToImage(sk_sp<SkPicture> picture,
   // Kick things off on the raster rask runner.
   fml::TaskRunner::RunNowOrPostTask(
       raster_task_runner,
-      [io_task_runner, io_manager, ui_task_runner, snapshot_delegate, picture, picture_bounds, ui_task] {
+      [raster_task_runner, io_task_runner, io_manager, ui_task_runner,
+       snapshot_delegate, picture, picture_bounds, ui_task] {
         auto gpu_raster_image =
             snapshot_delegate->MakeGpuSnapshot(picture, picture_bounds);
         if (gpu_raster_image) {
-          fml::TaskRunner::RunNowOrPostTask(io_task_runner, [ui_task_runner, ui_task,
-                                                             io_manager, gpu_raster_image] {
-            auto resource_context = io_manager->GetResourceContext();
-            sk_sp<SkImage> raster_image;
-            if (resource_context) {
-              raster_image = SnapshotDelegate::RenderGpuSnapshot(resource_context.get(), gpu_raster_image);
-              printf("Transferred %p\n", raster_image.get());
-            } else {
-              printf("FAIL FAIL\n");;
-            }
-            fml::TaskRunner::RunNowOrPostTask(
-                ui_task_runner,
-                [ui_task, raster_image]() { ui_task(raster_image); });
-          });
+          fml::TaskRunner::RunNowOrPostTask(
+              io_task_runner, [raster_task_runner, ui_task_runner, ui_task,
+                               io_manager, gpu_raster_image,
+                               picture, picture_bounds, snapshot_delegate] {
+
+                auto resource_context = io_manager->GetResourceContext();
+                auto raster_image =
+                    SnapshotDelegate::RenderGpuSnapshot(resource_context.get(),
+                                                        gpu_raster_image);
+                if (raster_image) {
+                  fml::TaskRunner::RunNowOrPostTask(
+                      ui_task_runner,
+                      [ui_task, raster_image]() { ui_task(raster_image); });
+                } else {
+                  fml::TaskRunner::RunNowOrPostTask(
+                      raster_task_runner, [ui_task_runner, snapshot_delegate,
+                                           picture, picture_bounds, ui_task] {
+                        auto raster_image =
+                            snapshot_delegate->MakeRasterSnapshotOnHost(
+                                picture, picture_bounds);
+                        fml::TaskRunner::RunNowOrPostTask(
+                            ui_task_runner, [ui_task, raster_image]() {
+                              ui_task(raster_image);
+                            });
+                      });
+                }
+              });
         } else {
-          auto raster_image = snapshot_delegate->MakeRasterSnapshotOnHost(picture, picture_bounds);
+          auto raster_image = snapshot_delegate->MakeRasterSnapshotOnHost(
+              picture, picture_bounds);
           fml::TaskRunner::RunNowOrPostTask(
               ui_task_runner,
               [ui_task, raster_image]() { ui_task(raster_image); });

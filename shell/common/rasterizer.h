@@ -467,17 +467,16 @@ class Rasterizer final : public SnapshotDelegate {
 
   // |SnapshotDelegate|
   sk_sp<SkImage> MakeRasterSnapshotOnHost(sk_sp<SkPicture> picture,
-                                                  SkISize picture_size) override;
+                                          SkISize picture_size) override;
 
   // |SnapshotDelegate|
-  std::shared_ptr<SnapshotDelegate::GpuSnapshot> MakeGpuSnapshot(sk_sp<SkPicture> picture,
-                                        SkISize picture_size) override;
+  std::shared_ptr<SnapshotDelegate::GpuSnapshot> MakeGpuSnapshot(
+      sk_sp<SkPicture> picture,
+      SkISize picture_size) override;
 
   // |SnapshotDelegate|
-  std::shared_ptr<SnapshotDelegate::GpuSnapshot> ConvertToRasterImage(sk_sp<SkImage> image) override;
-  
-  // |SnapshotDelegate|
-  sk_sp<SkImage> ConvertToRasterImageOnHost(sk_sp<SkImage> image) override;
+  std::shared_ptr<SnapshotDelegate::GpuSnapshot> ConvertToRasterImage(
+      sk_sp<SkImage> image) override;
 
   sk_sp<SkData> ScreenshotLayerTreeAsImage(
       flutter::LayerTree* tree,
@@ -485,9 +484,9 @@ class Rasterizer final : public SnapshotDelegate {
       GrDirectContext* surface_context,
       bool compressed);
 
-  sk_sp<SkImage> DoMakeRasterSnapshot(
-      SkISize size,
-      std::function<void(SkCanvas*)> draw_callback);
+  //sk_sp<SkImage> DoMakeRasterSnapshot(
+  //    SkISize size,
+  //    std::function<void(SkCanvas*)> draw_callback);
 
 
   std::shared_ptr<SnapshotDelegate::GpuSnapshot> DoMakeGpuSnapshot(

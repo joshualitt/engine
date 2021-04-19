@@ -13,11 +13,17 @@ namespace flutter {
 
 class SnapshotDelegate {
  public:
-  struct GpuSnapshot { 
-    GpuSnapshot(GrBackendTexture backing_texture, SkColorType color_type, SkAlphaType alpha_type,
-                sk_sp<SkColorSpace> color_space, SkImage::BackendTextureReleaseProc texture_release_callback)
-                : backing_texture(backing_texture), color_type(color_type), alpha_type(alpha_type),
-                color_space(color_space), texture_release_callback(texture_release_callback) {}
+  struct GpuSnapshot {
+    GpuSnapshot(GrBackendTexture backing_texture,
+                SkColorType color_type,
+                SkAlphaType alpha_type,
+                sk_sp<SkColorSpace> color_space,
+                SkImage::BackendTextureReleaseProc texture_release_callback)
+        : backing_texture(backing_texture),
+          color_type(color_type),
+          alpha_type(alpha_type),
+          color_space(color_space),
+          texture_release_callback(texture_release_callback) {}
     GrBackendTexture backing_texture;
     SkColorType color_type;
     SkAlphaType alpha_type;
@@ -36,11 +42,10 @@ class SnapshotDelegate {
                                              SkISize picture_size) = 0;
 
   virtual std::shared_ptr<GpuSnapshot> ConvertToRasterImage(sk_sp<SkImage> image) = 0;
-  virtual sk_sp<SkImage> ConvertToRasterImageOnHost(sk_sp<SkImage> image) = 0;
 
-  // TODO
-  static sk_sp<SkImage> RenderGpuSnapshot(GrDirectContext* context,
-                                 std::shared_ptr<SnapshotDelegate::GpuSnapshot> gpu_snapshot);
+  static sk_sp<SkImage> RenderGpuSnapshot(
+      GrDirectContext* context,
+      std::shared_ptr<SnapshotDelegate::GpuSnapshot> gpu_snapshot);
 };
 
 }  // namespace flutter

@@ -2079,10 +2079,9 @@ TEST_F(ShellTest, RasterizerMakeRasterSnapshot) {
       shell->GetTaskRunners().GetRasterTaskRunner(), [&shell, &latch]() {
         SnapshotDelegate* delegate =
             reinterpret_cast<Rasterizer*>(shell->GetRasterizer().get());
-        sk_sp<SkImage> image = delegate->MakeRasterSnapshot(
+        auto gpu_raster_image = delegate->MakeRasterSnapshot(
             SkPicture::MakePlaceholder({0, 0, 50, 50}), SkISize::Make(50, 50));
-        EXPECT_NE(image, nullptr);
-
+        EXPECT_NE(gpu_raster_image, nullptr);
         latch->Signal();
       });
   latch->Wait();

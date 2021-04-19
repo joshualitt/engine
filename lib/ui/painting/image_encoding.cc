@@ -134,14 +134,12 @@ void ConvertImageToRaster(sk_sp<SkImage> image,
                                 io_task_runner]() {
     auto gpu_raster_image =
         snapshot_delegate->ConvertToRasterImage(image);
-    printf("!! Converting image %p\n", gpu_raster_image.get());
     io_task_runner->PostTask([image, encode_task = std::move(encode_task),
                               gpu_raster_image = std::move(gpu_raster_image),
                               resource_context]() mutable {
       sk_sp<SkImage> raster_image;
       if (resource_context && gpu_raster_image) {
         raster_image = SnapshotDelegate::RenderGpuSnapshot(resource_context, gpu_raster_image);
-        printf("Encoding %p\n", raster_image.get());
       }
       if (!raster_image) {
         // The rasterizer was unable to render the cross-context image
