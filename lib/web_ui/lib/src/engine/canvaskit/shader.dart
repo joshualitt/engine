@@ -2,12 +2,11 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// @dart = 2.12
 part of engine;
 
 abstract class CkShader extends ManagedSkiaObject<SkShader>
     implements ui.Shader {
-  SkShader withQuality(ui.FilterQuality contextualQuality) => skiaObject;
-
   @override
   void delete() {
     rawSkiaObject?.delete();
@@ -64,14 +63,13 @@ class CkGradientLinear extends CkShader implements ui.Gradient {
     this.colors,
     this.colorStops,
     this.tileMode,
-    Float32List? matrix,
+    Float64List? matrix,
   )   : assert(_offsetIsValid(from)),
         assert(_offsetIsValid(to)),
         assert(colors != null), // ignore: unnecessary_null_comparison
         assert(tileMode != null), // ignore: unnecessary_null_comparison
         this.matrix4 = matrix {
     if (assertionsEnabled) {
-      assert(matrix4 == null || _matrix4IsValid(matrix4!));
       _validateColorStops(colors, colorStops);
     }
   }
@@ -81,7 +79,7 @@ class CkGradientLinear extends CkShader implements ui.Gradient {
   final List<ui.Color> colors;
   final List<double>? colorStops;
   final ui.TileMode tileMode;
-  final Float32List? matrix4;
+  final Float64List? matrix4;
 
   @override
   SkShader createDefault() {
@@ -93,7 +91,6 @@ class CkGradientLinear extends CkShader implements ui.Gradient {
       toFlatColors(colors),
       toSkColorStops(colorStops),
       toSkTileMode(tileMode),
-      matrix4 != null ? toSkMatrixFromFloat32(matrix4!) : null,
     );
   }
 
@@ -165,49 +162,25 @@ class CkGradientConical extends CkShader implements ui.Gradient {
 }
 
 class CkImageShader extends CkShader implements ui.ImageShader {
-  CkImageShader(ui.Image image, this.tileModeX, this.tileModeY, this.matrix4, this.filterQuality)
+  CkImageShader(ui.Image image, this.tileModeX, this.tileModeY, this.matrix4)
       : _image = image as CkImage;
 
   final ui.TileMode tileModeX;
   final ui.TileMode tileModeY;
   final Float64List matrix4;
-  final ui.FilterQuality? filterQuality;
   final CkImage _image;
 
-  ui.FilterQuality? _cachedQuality;
   @override
-  SkShader withQuality(ui.FilterQuality contextualQuality) {
-    ui.FilterQuality quality = filterQuality ?? contextualQuality;
-    SkShader? shader = rawSkiaObject;
-    if (_cachedQuality != quality || shader == null) {
-      if (quality == ui.FilterQuality.high) {
-        shader = _image.skImage.makeShaderCubic(
-          toSkTileMode(tileModeX),
-          toSkTileMode(tileModeY),
-          1.0 / 3.0,
-          1.0 / 3.0,
-          toSkMatrixFromFloat64(matrix4),
-        );
-      } else {
-        shader = _image.skImage.makeShaderOptions(
-          toSkTileMode(tileModeX),
-          toSkTileMode(tileModeY),
-          toSkFilterMode(quality),
-          toSkMipmapMode(quality),
-          toSkMatrixFromFloat64(matrix4),
-        );
-      }
-      _cachedQuality = quality;
-      rawSkiaObject = shader;
-    }
-    return shader;
-  }
+  SkShader createDefault() => _image.skImage.makeShaderOptions(
+        toSkTileMode(tileModeX),
+        toSkTileMode(tileModeY),
+        canvasKit.FilterMode.Nearest,
+        canvasKit.MipmapMode.None,
+        toSkMatrixFromFloat64(matrix4),
+      );
 
   @override
-  SkShader createDefault() => withQuality(ui.FilterQuality.none);
-
-  @override
-  SkShader resurrect() => withQuality(_cachedQuality ?? ui.FilterQuality.none);
+  SkShader resurrect() => createDefault();
 
   @override
   void delete() {

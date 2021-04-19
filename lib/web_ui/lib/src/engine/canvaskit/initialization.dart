@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// @dart = 2.12
 part of engine;
 
 /// A JavaScript entrypoint that allows developer to set rendering backend
@@ -74,7 +75,7 @@ const bool canvasKitForceCpuOnly = bool.fromEnvironment(
 /// NPM, update this URL to `https://unpkg.com/canvaskit-wasm@0.34.0/bin/`.
 const String canvasKitBaseUrl = String.fromEnvironment(
   'FLUTTER_WEB_CANVASKIT_URL',
-  defaultValue: 'https://unpkg.com/canvaskit-wasm@0.25.1/bin/',
+  defaultValue: 'https://unpkg.com/canvaskit-wasm@0.24.0/bin/',
 );
 final String canvasKitBuildUrl =
     canvasKitBaseUrl + (kProfileMode ? 'profiling/' : '');

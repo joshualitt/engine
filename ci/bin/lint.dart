@@ -197,12 +197,12 @@ void main(List<String> arguments) async {
   }
 
   if (!options.wasParsed('compile-commands')) {
-    stderr.writeln('ERROR: The --compile-commands argument is required.');
+    stderr.writeln('ERROR: The --compile-commands argument is requried.');
     _usage(parser);
   }
 
   if (!options.wasParsed('repo')) {
-    stderr.writeln('ERROR: The --repo argument is required.');
+    stderr.writeln('ERROR: The --repo argument is requried.');
     _usage(parser);
   }
 

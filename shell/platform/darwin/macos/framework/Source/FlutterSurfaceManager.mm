@@ -121,8 +121,8 @@ enum {
 
 - (nullable instancetype)initWithDevice:(nonnull id<MTLDevice>)device
                            commandQueue:(nonnull id<MTLCommandQueue>)commandQueue
-                                  layer:(nonnull CALayer*)containingLayer {
-  self = [super initWithLayer:containingLayer contentTransform:CATransform3DIdentity];
+                             metalLayer:(nonnull CAMetalLayer*)layer {
+  self = [super initWithLayer:layer contentTransform:CATransform3DIdentity];
   if (self) {
     super.delegate = self;
     _device = device;

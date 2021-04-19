@@ -342,7 +342,7 @@ SceneUpdateContext::Frame::Frame(std::shared_ptr<SceneUpdateContext> context,
       paint_bounds_(SkRect::MakeEmpty()) {
   // Increment elevation trackers before calculating any local elevation.
   // |UpdateView| can modify context->next_elevation_, which is why it is
-  // necessary to track this additional state.
+  // neccesary to track this addtional state.
   context->top_elevation_ += kScenicZElevationBetweenLayers;
   context->next_elevation_ += kScenicZElevationBetweenLayers;
 

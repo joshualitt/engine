@@ -30,14 +30,22 @@
     [self setWantsLayer:YES];
     [self setLayerContentsRedrawPolicy:NSViewLayerContentsRedrawDuringViewResize];
     _reshapeListener = reshapeListener;
-    _resizableBackingStoreProvider =
-        [[FlutterMetalResizableBackingStoreProvider alloc] initWithDevice:device
-                                                             commandQueue:commandQueue
-                                                                    layer:self.layer];
+    _resizableBackingStoreProvider = [[FlutterMetalResizableBackingStoreProvider alloc]
+        initWithDevice:device
+          commandQueue:commandQueue
+            metalLayer:reinterpret_cast<CAMetalLayer*>(self.layer)];
     _resizeSynchronizer =
         [[FlutterResizeSynchronizer alloc] initWithDelegate:_resizableBackingStoreProvider];
   }
   return self;
+}
+
++ (Class)layerClass {
+  return [FlutterRenderingBackend layerClass];
+}
+
+- (CALayer*)makeBackingLayer {
+  return [FlutterRenderingBackend createBackingLayer];
 }
 
 - (instancetype)initWithMainContext:(NSOpenGLContext*)mainContext

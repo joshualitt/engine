@@ -16,4 +16,15 @@
  */
 + (BOOL)renderUsingMetal;
 
+/**
+ * CALayer class depending on the rendering backend.
+ */
++ (nonnull Class)layerClass;
+
+/**
+ * On both Metal and OpenGL rendering backends, `wantsLayer` is set on the `FlutterView`. This
+ * methos is used by `FlutterView` to provide the said `CALayer`.
+ */
++ (nonnull CALayer*)createBackingLayer;
+
 @end

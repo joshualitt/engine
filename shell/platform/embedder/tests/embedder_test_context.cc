@@ -17,8 +17,7 @@ namespace testing {
 
 EmbedderTestContext::EmbedderTestContext(std::string assets_path)
     : assets_path_(std::move(assets_path)),
-      aot_symbols_(
-          LoadELFSymbolFromFixturesIfNeccessary(kDefaultAOTAppELFFileName)),
+      aot_symbols_(LoadELFSymbolFromFixturesIfNeccessary()),
       native_resolver_(std::make_shared<TestDartNativeResolver>()) {
   SetupAOTMappingsIfNecessary();
   SetupAOTDataIfNecessary();
@@ -54,8 +53,8 @@ void EmbedderTestContext::SetupAOTDataIfNecessary() {
   FlutterEngineAOTDataSource data_in = {};
   FlutterEngineAOTData data_out = nullptr;
 
-  const auto elf_path = fml::paths::JoinPaths(
-      {GetFixturesPath(), testing::kDefaultAOTAppELFFileName});
+  const auto elf_path =
+      fml::paths::JoinPaths({GetFixturesPath(), kAOTAppELFFileName});
 
   data_in.type = kFlutterEngineAOTDataSourceTypeElfPath;
   data_in.elf_path = elf_path.c_str();
@@ -141,11 +140,6 @@ void EmbedderTestContext::PlatformMessageCallback(
   }
 }
 
-void EmbedderTestContext::SetLogMessageCallback(
-    const LogMessageCallback& callback) {
-  log_message_callback_ = callback;
-}
-
 FlutterUpdateSemanticsNodeCallback
 EmbedderTestContext::GetUpdateSemanticsNodeCallbackHook() {
   return [](const FlutterSemanticsNode* semantics_node, void* user_data) {
@@ -162,15 +156,6 @@ EmbedderTestContext::GetUpdateSemanticsCustomActionCallbackHook() {
     auto context = reinterpret_cast<EmbedderTestContext*>(user_data);
     if (auto callback = context->update_semantics_custom_action_callback_) {
       callback(action);
-    }
-  };
-}
-
-FlutterLogMessageCallback EmbedderTestContext::GetLogMessageCallbackHook() {
-  return [](const char* tag, const char* message, void* user_data) {
-    auto context = reinterpret_cast<EmbedderTestContext*>(user_data);
-    if (auto callback = context->log_message_callback_) {
-      callback(tag, message);
     }
   };
 }

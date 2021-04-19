@@ -14,7 +14,7 @@ namespace flutter {
 
 IOSContextMetal::IOSContextMetal() {
   darwin_context_metal_ = fml::scoped_nsobject<FlutterDarwinContextMetal>{
-      [[FlutterDarwinContextMetal alloc] initWithDefaultMTLDevice]};
+      [[[FlutterDarwinContextMetal alloc] initWithDefaultMTLDevice] retain]};
 
   if (!darwin_context_metal_) {
     return;

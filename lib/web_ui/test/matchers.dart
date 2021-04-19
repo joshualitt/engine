@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 /// Provides utilities for testing engine code.
+// @dart = 2.12
 library matchers;
 
 import 'dart:html' as html;

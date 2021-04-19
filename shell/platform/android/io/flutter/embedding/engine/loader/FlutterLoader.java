@@ -17,7 +17,6 @@ import android.view.WindowManager;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import io.flutter.BuildConfig;
-import io.flutter.FlutterInjector;
 import io.flutter.Log;
 import io.flutter.embedding.engine.FlutterJNI;
 import io.flutter.util.PathUtils;
@@ -71,14 +70,14 @@ public class FlutterLoader {
 
   /** Creates a {@code FlutterLoader} that uses a default constructed {@link FlutterJNI}. */
   public FlutterLoader() {
-    this(FlutterInjector.instance().getFlutterJNIFactory().provideFlutterJNI());
+    this(new FlutterJNI());
   }
 
   /**
    * Creates a {@code FlutterLoader} with the specified {@link FlutterJNI}.
    *
    * @param flutterJNI The {@link FlutterJNI} instance to use for loading the libflutter.so C++
-   *     library, setting up the font manager, and calling into C++ initialization.
+   *     library, setting up the font manager, and calling into C++ initalization.
    */
   public FlutterLoader(@NonNull FlutterJNI flutterJNI) {
     this.flutterJNI = flutterJNI;
@@ -238,6 +237,9 @@ public class FlutterLoader {
       }
 
       shellArgs.add("--cache-dir-path=" + result.engineCachesPath);
+      if (!flutterApplicationInfo.clearTextPermitted) {
+        shellArgs.add("--disallow-insecure-connections");
+      }
       if (flutterApplicationInfo.domainNetworkPolicy != null) {
         shellArgs.add("--domain-network-policy=" + flutterApplicationInfo.domainNetworkPolicy);
       }

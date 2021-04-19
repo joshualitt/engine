@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// @dart = 2.12
 part of engine;
 
 class LayerScene implements ui.Scene {
@@ -100,13 +101,9 @@ class LayerSceneBuilder implements ui.SceneBuilder {
   @override
   BackdropFilterEngineLayer? pushBackdropFilter(
     ui.ImageFilter filter, {
-    ui.BlendMode blendMode = ui.BlendMode.srcOver,
     ui.EngineLayer? oldLayer,
   }) {
-    return pushLayer<BackdropFilterEngineLayer>(BackdropFilterEngineLayer(
-      filter,
-      blendMode,
-    ));
+    return pushLayer<BackdropFilterEngineLayer>(BackdropFilterEngineLayer(filter));
   }
 
   @override
@@ -195,10 +192,9 @@ class LayerSceneBuilder implements ui.SceneBuilder {
     ui.Rect maskRect,
     ui.BlendMode blendMode, {
     ui.EngineLayer? oldLayer,
-    ui.FilterQuality filterQuality = ui.FilterQuality.low,
   }) {
     return pushLayer<ShaderMaskEngineLayer>(ShaderMaskEngineLayer(
-        shader, maskRect, blendMode, filterQuality));
+        shader, maskRect, blendMode));
   }
 
   @override

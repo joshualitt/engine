@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// @dart = 2.6
 import 'dart:html' as html;
 
 import 'package:test/bootstrap/browser.dart';
@@ -9,7 +10,7 @@ import 'package:test/test.dart';
 import 'package:ui/ui.dart';
 import 'package:ui/src/engine.dart';
 
-import 'screenshot.dart';
+import 'package:web_engine_tester/golden_tester.dart';
 
 final Rect region = Rect.fromLTWH(0, 0, 500, 100);
 
@@ -17,12 +18,14 @@ void main() {
   internalBootstrapBrowserTest(() => testMain);
 }
 
-SurfacePaint makePaint() => Paint() as SurfacePaint;
-
 void testMain() async {
   setUp(() async {
     debugShowClipLayers = true;
     SurfaceSceneBuilder.debugForgetFrameScene();
+    for (html.Node scene in html.document.querySelectorAll('flt-scene')) {
+      scene.remove();
+    }
+
     await webOnlyInitializePlatform();
     webOnlyFontCollection.debugRegisterTestFonts();
     await webOnlyFontCollection.ensureFontsLoaded();
@@ -40,8 +43,8 @@ void testMain() async {
 
       html.Element elm1 = builder
           .build()
-          .webOnlyRootElement!;
-      html.document.body!.append(elm1);
+          .webOnlyRootElement;
+      html.document.body.append(elm1);
 
       // Now draw picture again but at larger size.
       final SurfaceSceneBuilder builder2 = SurfaceSceneBuilder();
@@ -55,8 +58,12 @@ void testMain() async {
       builder2.pop();
 
       elm1.remove();
-      await sceneScreenshot(builder2, 'canvas_draw_picture_acrossframes',
-        region: region);
+      html.document.body.append(builder2
+          .build()
+          .webOnlyRootElement);
+
+      await matchGoldenFile('canvas_draw_picture_acrossframes.png',
+          region: region);
     });
 
     test('draw growing picture across frames clipped', () async {
@@ -70,8 +77,8 @@ void testMain() async {
 
       html.Element elm1 = builder
           .build()
-          .webOnlyRootElement!;
-      html.document.body!.append(elm1);
+          .webOnlyRootElement;
+      html.document.body.append(elm1);
 
       // Now draw picture again but at larger size.
       final SurfaceSceneBuilder builder2 = SurfaceSceneBuilder();
@@ -82,7 +89,11 @@ void testMain() async {
       builder2.pop();
 
       elm1.remove();
-      await sceneScreenshot(builder2, 'canvas_draw_picture_acrossframes_clipped',
+      html.document.body.append(builder2
+          .build()
+          .webOnlyRootElement);
+
+      await matchGoldenFile('canvas_draw_picture_acrossframes_clipped.png',
           region: region);
     });
 
@@ -90,23 +101,28 @@ void testMain() async {
       final SurfaceSceneBuilder builder = SurfaceSceneBuilder();
       final Picture greenRectPicture = _drawGreenRectIntoPicture();
 
-      final EnginePictureRecorder recorder = PictureRecorder() as EnginePictureRecorder;
+      final EnginePictureRecorder recorder = PictureRecorder();
       final RecordingCanvas canvas =
       recorder.beginRecording(const Rect.fromLTRB(0, 0, 100, 100));
       canvas.drawPicture(greenRectPicture);
       builder.addPicture(Offset(10, 10), recorder.endRecording());
 
-      await sceneScreenshot(builder, 'canvas_draw_picture_in_picture_rect',
+      html.Element elm1 = builder
+          .build()
+          .webOnlyRootElement;
+      html.document.body.append(elm1);
+
+      await matchGoldenFile('canvas_draw_picture_in_picture_rect.png',
           region: region);
     });
   });
 }
 
-HtmlImage? sharedImage;
+HtmlImage sharedImage;
 
 void _drawTestPicture(SceneBuilder builder, double targetSize, bool clipped) {
   sharedImage ??= _createRealTestImage();
-  final EnginePictureRecorder recorder = PictureRecorder() as EnginePictureRecorder;
+  final EnginePictureRecorder recorder = PictureRecorder();
   final RecordingCanvas canvas =
       recorder.beginRecording(const Rect.fromLTRB(0, 0, 100, 100));
   canvas.debugEnforceArbitraryPaint();
@@ -114,8 +130,8 @@ void _drawTestPicture(SceneBuilder builder, double targetSize, bool clipped) {
     canvas.clipRRect(
         RRect.fromLTRBR(0, 0, targetSize, targetSize, Radius.circular(4)));
   }
-  canvas.drawImageRect(sharedImage!, Rect.fromLTWH(0, 0, 20, 20),
-      Rect.fromLTWH(0, 0, targetSize, targetSize), makePaint());
+  canvas.drawImageRect(sharedImage, Rect.fromLTWH(0, 0, 20, 20),
+      Rect.fromLTWH(0, 0, targetSize, targetSize), Paint());
   final Picture picture = recorder.endRecording();
   builder.addPicture(
     Offset.zero,
@@ -124,11 +140,11 @@ void _drawTestPicture(SceneBuilder builder, double targetSize, bool clipped) {
 }
 
 Picture _drawGreenRectIntoPicture() {
-  final EnginePictureRecorder recorder = PictureRecorder() as EnginePictureRecorder;
+  final EnginePictureRecorder recorder = PictureRecorder();
   final RecordingCanvas canvas =
     recorder.beginRecording(const Rect.fromLTRB(0, 0, 100, 100));
   canvas.drawRect(Rect.fromLTWH(20, 20, 50, 50),
-    makePaint()..color = const Color(0xFF00FF00));
+    Paint()..color = const Color(0xFF00FF00));
   return recorder.endRecording();
 }
 

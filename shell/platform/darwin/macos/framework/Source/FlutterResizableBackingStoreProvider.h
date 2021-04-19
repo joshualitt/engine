@@ -53,6 +53,6 @@
  */
 - (nonnull instancetype)initWithDevice:(nonnull id<MTLDevice>)device
                           commandQueue:(nonnull id<MTLCommandQueue>)commandQueue
-                                 layer:(nonnull CALayer*)layer;
+                            metalLayer:(nonnull CAMetalLayer*)layer;
 
 @end

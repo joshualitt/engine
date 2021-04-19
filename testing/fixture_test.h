@@ -19,13 +19,7 @@ namespace testing {
 
 class FixtureTest : public ThreadTest {
  public:
-  // Uses the default filenames from the fixtures generator.
   FixtureTest();
-
-  // Allows to customize the kernel, ELF and split ELF filenames.
-  FixtureTest(std::string kernel_filename,
-              std::string elf_filename,
-              std::string elf_split_filename);
 
   virtual Settings CreateSettingsForFixture();
 
@@ -39,8 +33,6 @@ class FixtureTest : public ThreadTest {
   ELFAOTSymbols split_aot_symbols_;
 
  private:
-  std::string kernel_filename_;
-  std::string elf_filename_;
   fml::UniqueFD assets_dir_;
   ELFAOTSymbols aot_symbols_;
 

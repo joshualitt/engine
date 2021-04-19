@@ -269,13 +269,8 @@ FILE: ../../../flutter/fml/synchronization/sync_switch_unittest.cc
 FILE: ../../../flutter/fml/synchronization/waitable_event.cc
 FILE: ../../../flutter/fml/synchronization/waitable_event.h
 FILE: ../../../flutter/fml/synchronization/waitable_event_unittest.cc
-FILE: ../../../flutter/fml/task_queue_id.h
 FILE: ../../../flutter/fml/task_runner.cc
 FILE: ../../../flutter/fml/task_runner.h
-FILE: ../../../flutter/fml/task_source.cc
-FILE: ../../../flutter/fml/task_source.h
-FILE: ../../../flutter/fml/task_source_grade.h
-FILE: ../../../flutter/fml/task_source_unittests.cc
 FILE: ../../../flutter/fml/thread.cc
 FILE: ../../../flutter/fml/thread.h
 FILE: ../../../flutter/fml/thread_local.cc
@@ -614,12 +609,10 @@ FILE: ../../../flutter/runtime/dart_vm_lifecycle.h
 FILE: ../../../flutter/runtime/dart_vm_unittests.cc
 FILE: ../../../flutter/runtime/embedder_resources.cc
 FILE: ../../../flutter/runtime/embedder_resources.h
-FILE: ../../../flutter/runtime/fixtures/no_dart_plugin_registrant_test.dart
 FILE: ../../../flutter/runtime/fixtures/runtime_test.dart
 FILE: ../../../flutter/runtime/fixtures/split_lib_test.dart
 FILE: ../../../flutter/runtime/isolate_configuration.cc
 FILE: ../../../flutter/runtime/isolate_configuration.h
-FILE: ../../../flutter/runtime/no_dart_plugin_registrant_unittests.cc
 FILE: ../../../flutter/runtime/platform_data.cc
 FILE: ../../../flutter/runtime/platform_data.h
 FILE: ../../../flutter/runtime/ptrace_check.cc
@@ -1115,8 +1108,6 @@ FILE: ../../../flutter/shell/platform/darwin/macos/framework/Source/FlutterBacki
 FILE: ../../../flutter/shell/platform/darwin/macos/framework/Source/FlutterChannelKeyResponder.h
 FILE: ../../../flutter/shell/platform/darwin/macos/framework/Source/FlutterChannelKeyResponder.mm
 FILE: ../../../flutter/shell/platform/darwin/macos/framework/Source/FlutterChannelKeyResponderUnittests.mm
-FILE: ../../../flutter/shell/platform/darwin/macos/framework/Source/FlutterCompositor.h
-FILE: ../../../flutter/shell/platform/darwin/macos/framework/Source/FlutterCompositor.mm
 FILE: ../../../flutter/shell/platform/darwin/macos/framework/Source/FlutterDartProject.mm
 FILE: ../../../flutter/shell/platform/darwin/macos/framework/Source/FlutterDartProject_Internal.h
 FILE: ../../../flutter/shell/platform/darwin/macos/framework/Source/FlutterEmbedderExternalTextureUnittests.mm
@@ -1513,8 +1504,6 @@ FILE: ../../../flutter/shell/platform/windows/client_wrapper/include/flutter/plu
 FILE: ../../../flutter/shell/platform/windows/client_wrapper/plugin_registrar_windows_unittests.cc
 FILE: ../../../flutter/shell/platform/windows/cursor_handler.cc
 FILE: ../../../flutter/shell/platform/windows/cursor_handler.h
-FILE: ../../../flutter/shell/platform/windows/display_helper_winuwp.cc
-FILE: ../../../flutter/shell/platform/windows/display_helper_winuwp.h
 FILE: ../../../flutter/shell/platform/windows/dpi_utils_win32.cc
 FILE: ../../../flutter/shell/platform/windows/dpi_utils_win32.h
 FILE: ../../../flutter/shell/platform/windows/dpi_utils_win32_unittests.cc
@@ -1540,10 +1529,6 @@ FILE: ../../../flutter/shell/platform/windows/flutter_windows_view.cc
 FILE: ../../../flutter/shell/platform/windows/flutter_windows_view.h
 FILE: ../../../flutter/shell/platform/windows/flutter_windows_win32.cc
 FILE: ../../../flutter/shell/platform/windows/flutter_windows_winuwp.cc
-FILE: ../../../flutter/shell/platform/windows/game_pad_cursor_winuwp.cc
-FILE: ../../../flutter/shell/platform/windows/game_pad_cursor_winuwp.h
-FILE: ../../../flutter/shell/platform/windows/game_pad_winuwp.cc
-FILE: ../../../flutter/shell/platform/windows/game_pad_winuwp.h
 FILE: ../../../flutter/shell/platform/windows/keyboard_handler_base.h
 FILE: ../../../flutter/shell/platform/windows/keyboard_key_channel_handler.cc
 FILE: ../../../flutter/shell/platform/windows/keyboard_key_channel_handler.h

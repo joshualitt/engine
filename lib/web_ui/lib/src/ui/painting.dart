@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// @dart = 2.12
 part of ui;
 
 // ignore: unused_element, Used in Shader assert.
@@ -277,14 +278,10 @@ abstract class Gradient extends Shader {
     List<double>? colorStops,
     TileMode tileMode = TileMode.clamp,
     Float64List? matrix4,
-  ]) {
-    Float32List? matrix = matrix4 == null ? null : engine.toMatrix32(matrix4);
-    return engine.useCanvasKit
-        ? engine.CkGradientLinear(
-        from, to, colors, colorStops, tileMode, matrix)
-        : engine.GradientLinear(from, to, colors, colorStops, tileMode, matrix);
-  }
-
+  ]) => engine.useCanvasKit
+    ? engine.CkGradientLinear(from, to, colors, colorStops, tileMode, matrix4)
+    : engine.GradientLinear(from, to, colors, colorStops, tileMode,
+        matrix4 == null ? null : engine.toMatrix32(matrix4));
   factory Gradient.radial(
     Offset center,
     double radius,
@@ -388,6 +385,8 @@ class MaskFilter {
 }
 
 enum FilterQuality {
+  // This list comes from Skia's SkFilterQuality.h and the values (order) should
+  // be kept in sync.
   none,
   low,
   medium,
@@ -691,11 +690,9 @@ class Shadow {
 }
 
 class ImageShader extends Shader {
-  factory ImageShader(Image image, TileMode tmx, TileMode tmy, Float64List matrix4, {
-    FilterQuality? filterQuality,
-  }) {
+  factory ImageShader(Image image, TileMode tmx, TileMode tmy, Float64List matrix4) {
     if (engine.useCanvasKit) {
-      return engine.CkImageShader(image, tmx, tmy, matrix4, filterQuality);
+      return engine.CkImageShader(image, tmx, tmy, matrix4);
     }
     throw UnsupportedError('ImageShader not implemented for web platform.');
   }

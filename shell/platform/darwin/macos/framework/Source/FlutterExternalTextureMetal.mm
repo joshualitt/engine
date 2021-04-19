@@ -4,8 +4,6 @@
 
 #import "flutter/shell/platform/darwin/macos/framework/Source/FlutterExternalTextureMetal.h"
 
-#include "flutter/fml/platform/darwin/cf_utils.h"
-
 @implementation FlutterExternalTextureMetal {
   FlutterDarwinContextMetal* _darwinMetalContext;
 
@@ -33,7 +31,7 @@
 
 - (BOOL)populateTexture:(FlutterMetalExternalTexture*)textureOut {
   // Copy the pixel buffer from the FlutterTexture instance implemented on the user side.
-  fml::CFRef<CVPixelBufferRef> pixelBuffer([_texture copyPixelBuffer]);
+  CVPixelBufferRef pixelBuffer = [_texture copyPixelBuffer];
 
   if (!pixelBuffer) {
     return NO;

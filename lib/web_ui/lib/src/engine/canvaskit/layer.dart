@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// @dart = 2.12
 part of engine;
 
 /// A layer to be composed into a scene.
@@ -151,9 +152,8 @@ class RootLayer extends ContainerLayer {
 
 class BackdropFilterEngineLayer extends ContainerLayer implements ui.BackdropFilterEngineLayer {
   final ui.ImageFilter _filter;
-  final ui.BlendMode _blendMode;
 
-  BackdropFilterEngineLayer(this._filter, this._blendMode);
+  BackdropFilterEngineLayer(this._filter);
 
   @override
   void preroll(PrerollContext preRollContext, Matrix4 matrix) {
@@ -163,8 +163,7 @@ class BackdropFilterEngineLayer extends ContainerLayer implements ui.BackdropFil
 
   @override
   void paint(PaintContext context) {
-    CkPaint paint = CkPaint()..blendMode = _blendMode;
-    context.internalNodesCanvas.saveLayerWithFilter(paintBounds, _filter, paint);
+    context.internalNodesCanvas.saveLayerWithFilter(paintBounds, _filter);
     paintChildren(context);
     context.internalNodesCanvas.restore();
   }
@@ -380,12 +379,11 @@ class ImageFilterEngineLayer extends ContainerLayer implements ui.ImageFilterEng
 }
 
 class ShaderMaskEngineLayer extends ContainerLayer implements ui.ShaderMaskEngineLayer {
-  ShaderMaskEngineLayer(this.shader, this.maskRect, this.blendMode, this.filterQuality);
+  ShaderMaskEngineLayer(this.shader, this.maskRect, this.blendMode);
 
   final ui.Shader shader;
   final ui.Rect maskRect;
   final ui.BlendMode blendMode;
-  final ui.FilterQuality filterQuality;
 
   @override
   void paint(PaintContext paintContext) {
@@ -397,13 +395,11 @@ class ShaderMaskEngineLayer extends ContainerLayer implements ui.ShaderMaskEngin
     CkPaint paint = CkPaint();
     paint.shader = shader;
     paint.blendMode = blendMode;
-    paint.filterQuality = filterQuality;
 
     paintContext.leafNodesCanvas!.save();
     paintContext.leafNodesCanvas!.translate(maskRect.left, maskRect.top);
 
-    paintContext.leafNodesCanvas!.drawRect(
-        ui.Rect.fromLTWH(0, 0, maskRect.width, maskRect.height), paint);
+    paintContext.leafNodesCanvas!.drawRect(maskRect, paint);
     paintContext.leafNodesCanvas!.restore();
 
     paintContext.internalNodesCanvas.restore();

@@ -29,8 +29,7 @@ static void StartupAndShutdownShell(benchmark::State& state,
     settings.task_observer_remove = [](intptr_t) {};
 
     if (DartVM::IsRunningPrecompiledCode()) {
-      aot_symbols = testing::LoadELFSymbolFromFixturesIfNeccessary(
-          testing::kDefaultAOTAppELFFileName);
+      aot_symbols = testing::LoadELFSymbolFromFixturesIfNeccessary();
       FML_CHECK(
           testing::PrepareSettingsForAOTWithSymbols(settings, aot_symbols))
           << "Could not set up settings with AOT symbols.";

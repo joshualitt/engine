@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// @dart = 2.12
 part of engine;
 
 /// The implementation of [ui.Paint] used by the CanvasKit backend.
@@ -123,7 +124,7 @@ class CkPaint extends ManagedSkiaObject<SkPaint> implements ui.Paint {
       return;
     }
     _shader = value as CkShader?;
-    skiaObject.setShader(_shader?.withQuality(_filterQuality));
+    skiaObject.setShader(_shader?.skiaObject);
   }
 
   CkShader? _shader;
@@ -158,7 +159,6 @@ class CkPaint extends ManagedSkiaObject<SkPaint> implements ui.Paint {
       return;
     }
     _filterQuality = value;
-    skiaObject.setShader(_shader?.withQuality(value));
     skiaObject.setFilterQuality(toSkFilterQuality(value));
   }
 
@@ -227,7 +227,7 @@ class CkPaint extends ManagedSkiaObject<SkPaint> implements ui.Paint {
     paint.setStrokeWidth(_strokeWidth);
     paint.setAntiAlias(_isAntiAlias);
     paint.setColorInt(_color.value);
-    paint.setShader(_shader?.withQuality(_filterQuality));
+    paint.setShader(_shader?.skiaObject);
     paint.setMaskFilter(_ckMaskFilter?.skiaObject);
     paint.setColorFilter(_managedColorFilter?.skiaObject);
     paint.setImageFilter(_managedImageFilter?.skiaObject);

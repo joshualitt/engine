@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// @dart = 2.12
 part of ui;
 
 abstract class Scene {
@@ -78,7 +79,6 @@ abstract class SceneBuilder {
   });
   BackdropFilterEngineLayer? pushBackdropFilter(
     ImageFilter filter, {
-    BlendMode blendMode = BlendMode.srcOver,
     BackdropFilterEngineLayer? oldLayer,
   });
   ShaderMaskEngineLayer? pushShaderMask(
@@ -86,7 +86,6 @@ abstract class SceneBuilder {
     Rect maskRect,
     BlendMode blendMode, {
     ShaderMaskEngineLayer? oldLayer,
-    FilterQuality filterQuality = FilterQuality.low,
   });
   PhysicalShapeEngineLayer? pushPhysicalShape({
     required Path path,

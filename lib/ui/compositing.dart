@@ -495,9 +495,8 @@ class SceneBuilder extends NativeFieldWrapperClass2 {
 
   /// Pushes a backdrop filter operation onto the operation stack.
   ///
-  /// The given filter is applied to the current contents of the scene as far back as
-  /// the most recent save layer and rendered back to the scene using the indicated
-  /// [blendMode] prior to rasterizing the child layers.
+  /// The given filter is applied to the current contents of the scene prior to
+  /// rasterizing the given objects.
   ///
   /// {@macro dart.ui.sceneBuilder.oldLayer}
   ///
@@ -506,18 +505,17 @@ class SceneBuilder extends NativeFieldWrapperClass2 {
   /// See [pop] for details about the operation stack.
   BackdropFilterEngineLayer? pushBackdropFilter(
     ImageFilter filter, {
-    BlendMode blendMode = BlendMode.srcOver,
     BackdropFilterEngineLayer? oldLayer,
   }) {
     assert(_debugCheckCanBeUsedAsOldLayer(oldLayer, 'pushBackdropFilter'));
     final EngineLayer engineLayer = EngineLayer._();
-    _pushBackdropFilter(engineLayer, filter._toNativeImageFilter(), blendMode.index, oldLayer?._nativeLayer);
+    _pushBackdropFilter(engineLayer, filter._toNativeImageFilter(), oldLayer?._nativeLayer);
     final BackdropFilterEngineLayer layer = BackdropFilterEngineLayer._(engineLayer);
     assert(_debugPushLayer(layer));
     return layer;
   }
 
-  void _pushBackdropFilter(EngineLayer outEngineLayer, _ImageFilter filter, int blendMode, EngineLayer? oldLayer)
+  void _pushBackdropFilter(EngineLayer outEngineLayer, _ImageFilter filter, EngineLayer? oldLayer)
       native 'SceneBuilder_pushBackdropFilter';
 
   /// Pushes a shader mask operation onto the operation stack.
@@ -535,7 +533,6 @@ class SceneBuilder extends NativeFieldWrapperClass2 {
     Rect maskRect,
     BlendMode blendMode, {
     ShaderMaskEngineLayer? oldLayer,
-    FilterQuality filterQuality = FilterQuality.low,
   }) {
     assert(_debugCheckCanBeUsedAsOldLayer(oldLayer, 'pushShaderMask'));
     final EngineLayer engineLayer = EngineLayer._();
@@ -547,7 +544,6 @@ class SceneBuilder extends NativeFieldWrapperClass2 {
       maskRect.top,
       maskRect.bottom,
       blendMode.index,
-      filterQuality.index,
       oldLayer?._nativeLayer,
     );
     final ShaderMaskEngineLayer layer = ShaderMaskEngineLayer._(engineLayer);
@@ -563,7 +559,6 @@ class SceneBuilder extends NativeFieldWrapperClass2 {
       double maskRectTop,
       double maskRectBottom,
       int blendMode,
-      int filterQualityIndex,
       EngineLayer? oldLayer) native 'SceneBuilder_pushShaderMask';
 
   /// Pushes a physical layer operation for an arbitrary shape onto the

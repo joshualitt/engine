@@ -5,16 +5,6 @@
        "ICU_TIMEZONE_FILES_DIR=/pkg/data/tzdata"
     ]
   },
-  "facets": {
-    "fuchsia.test": {
-      "system-services": [
-        "fuchsia.scenic.allocation.Allocator",
-        "fuchsia.sysmem.Allocator",
-        "fuchsia.ui.scenic.Scenic",
-        "fuchsia.vulkan.loader.Loader"
-      ]
-    }
-  },
   "sandbox": {
     "features": [
       "deprecated-ambient-replace-as-executable",
@@ -28,9 +18,7 @@
       "fuchsia.process.Launcher",
       "fuchsia.vulkan.loader.Loader",
       "fuchsia.logger.LogSink",
-      "fuchsia.scenic.allocation.Allocator",
-      "fuchsia.sysmem.Allocator",
-      "fuchsia.ui.scenic.Scenic"
+      "fuchsia.sysmem.Allocator"
     ]
   }
 }

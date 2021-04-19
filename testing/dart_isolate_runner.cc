@@ -13,25 +13,12 @@ AutoIsolateShutdown::AutoIsolateShutdown(std::shared_ptr<DartIsolate> isolate,
     : isolate_(std::move(isolate)), runner_(std::move(runner)) {}
 
 AutoIsolateShutdown::~AutoIsolateShutdown() {
-  if (!isolate_->IsShuttingDown()) {
-    Shutdown();
-  }
-  fml::AutoResetWaitableEvent latch;
-  fml::TaskRunner::RunNowOrPostTask(runner_,
-                                    [isolate = std::move(isolate_), &latch]() {
-                                      // Delete isolate on thread.
-                                      latch.Signal();
-                                    });
-  latch.Wait();
-}
-
-void AutoIsolateShutdown::Shutdown() {
   if (!IsValid()) {
     return;
   }
   fml::AutoResetWaitableEvent latch;
   fml::TaskRunner::RunNowOrPostTask(
-      runner_, [isolate = isolate_.get(), &latch]() {
+      runner_, [isolate = std::move(isolate_), &latch]() {
         if (!isolate->Shutdown()) {
           FML_LOG(ERROR) << "Could not shutdown isolate.";
           FML_CHECK(false);
@@ -68,7 +55,7 @@ std::unique_ptr<AutoIsolateShutdown> RunDartCodeInIsolateOnUITaskRunner(
     const TaskRunners& task_runners,
     std::string entrypoint,
     const std::vector<std::string>& args,
-    const std::string& kernel_file_path,
+    const std::string& fixtures_path,
     fml::WeakPtr<IOManager> io_manager,
     std::shared_ptr<VolatilePathTracker> volatile_path_tracker) {
   FML_CHECK(task_runners.GetUITaskRunner()->RunsTasksOnCurrentThread());
@@ -88,6 +75,9 @@ std::unique_ptr<AutoIsolateShutdown> RunDartCodeInIsolateOnUITaskRunner(
   settings.dart_entrypoint_args = args;
 
   if (!DartVM::IsRunningPrecompiledCode()) {
+    auto kernel_file_path =
+        fml::paths::JoinPaths({fixtures_path, "kernel_blob.bin"});
+
     if (!fml::IsFile(kernel_file_path)) {
       FML_LOG(ERROR) << "Could not locate kernel file.";
       return nullptr;
@@ -157,7 +147,7 @@ std::unique_ptr<AutoIsolateShutdown> RunDartCodeInIsolate(
     const TaskRunners& task_runners,
     std::string entrypoint,
     const std::vector<std::string>& args,
-    const std::string& kernel_file_path,
+    const std::string& fixtures_path,
     fml::WeakPtr<IOManager> io_manager,
     std::shared_ptr<VolatilePathTracker> volatile_path_tracker) {
   std::unique_ptr<AutoIsolateShutdown> result;
@@ -165,7 +155,7 @@ std::unique_ptr<AutoIsolateShutdown> RunDartCodeInIsolate(
   fml::TaskRunner::RunNowOrPostTask(
       task_runners.GetUITaskRunner(), fml::MakeCopyable([&]() mutable {
         result = RunDartCodeInIsolateOnUITaskRunner(
-            vm_ref, settings, task_runners, entrypoint, args, kernel_file_path,
+            vm_ref, settings, task_runners, entrypoint, args, fixtures_path,
             io_manager, std::move(volatile_path_tracker));
         latch.Signal();
       }));

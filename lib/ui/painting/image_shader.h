@@ -31,10 +31,9 @@ class ImageShader : public Shader {
   void initWithImage(CanvasImage* image,
                      SkTileMode tmx,
                      SkTileMode tmy,
-                     int filter_quality_index,
                      const tonic::Float64List& matrix4);
 
-  sk_sp<SkShader> shader(SkSamplingOptions) override;
+  sk_sp<SkShader> shader(SkFilterQuality) override;
 
   static void RegisterNatives(tonic::DartLibraryNatives* natives);
 
@@ -45,9 +44,8 @@ class ImageShader : public Shader {
   SkTileMode tmx_;
   SkTileMode tmy_;
   SkMatrix local_matrix_;
-  bool sampling_is_locked_;
 
-  SkSamplingOptions cached_sampling_;
+  SkFilterQuality cached_quality_ = kNone_SkFilterQuality;
   flutter::SkiaGPUObject<SkShader> cached_shader_;
 };
 

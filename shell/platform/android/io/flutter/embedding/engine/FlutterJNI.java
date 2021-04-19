@@ -282,7 +282,6 @@ public class FlutterJNI {
 
   @NonNull private final Looper mainLooper; // cached to avoid synchronization on repeat access.
 
-  // Prefer using the FlutterJNI.Factory so it's easier to test.
   public FlutterJNI() {
     // We cache the main looper so that we can ensure calls are made on the main thread
     // without consistently paying the synchronization cost of getMainLooper().
@@ -362,7 +361,7 @@ public class FlutterJNI {
    * up during {@link #attachToNative(boolean)} or {@link #spawn(String, String)}, or accumulated
    * thereafter.
    *
-   * <p>It is permissible to re-attach this instance to native after detaching it from native.
+   * <p>It is permissable to re-attach this instance to native after detaching it from native.
    */
   @UiThread
   public void detachFromNativeAndReleaseResources() {
@@ -1114,8 +1113,8 @@ public class FlutterJNI {
    * @param searchPaths An array of paths in which to look for valid dart shared libraries. This
    *     supports paths within zipped apks as long as the apks are not compressed using the
    *     `path/to/apk.apk!path/inside/apk/lib.so` format. Paths will be tried first to last and ends
-   *     when a library is successfully found. When the found library is invalid, no additional
-   *     paths will be attempted.
+   *     when a library is sucessfully found. When the found library is invalid, no additional paths
+   *     will be attempted.
    */
   @UiThread
   public void loadDartDeferredLibrary(int loadingUnitId, @NonNull String[] searchPaths) {
@@ -1258,16 +1257,5 @@ public class FlutterJNI {
 
   public interface AsyncWaitForVsyncDelegate {
     void asyncWaitForVsync(final long cookie);
-  }
-
-  /**
-   * A factory for creating {@code FlutterJNI} instances. Useful for FlutterJNI injections during
-   * tests.
-   */
-  public static class Factory {
-    /** @return a {@link FlutterJNI} instance. */
-    public FlutterJNI provideFlutterJNI() {
-      return new FlutterJNI();
-    }
   }
 }

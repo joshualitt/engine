@@ -18,9 +18,11 @@ SyncSwitch::Handlers& SyncSwitch::Handlers::SetIfFalse(
   return *this;
 }
 
+SyncSwitch::SyncSwitch() : SyncSwitch(false) {}
+
 SyncSwitch::SyncSwitch(bool value) : value_(value) {}
 
-void SyncSwitch::Execute(const SyncSwitch::Handlers& handlers) const {
+void SyncSwitch::Execute(const SyncSwitch::Handlers& handlers) {
   std::scoped_lock guard(mutex_);
   if (value_) {
     handlers.true_handler();

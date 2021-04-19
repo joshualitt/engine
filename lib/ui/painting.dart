@@ -823,19 +823,17 @@ enum BlendMode {
   luminosity,
 }
 
-/// Quality levels for image sampling in [ImageFilter] and [Shader] objects that sample
-/// images and for [Canvas] operations that render images.
+/// Quality levels for image filters.
 ///
-/// When scaling up typically the quality is lowest at [none], higher at [low] and [medium],
-/// and for very large scale factors (over 10x) the highest at [high].
+/// When scaling up typically the quality is lowest at [none], higher at [low],
+/// even higher at [medium], and the highest at [high].
 ///
-/// When scaling down, [medium] provides the best quality especially when scaling an
-/// image to less than half its size or for animating the scale factor between such
-/// reductions. Otherwise, [low] and [high] provide similar effects for reductions of
-/// between 50% and 100% but the image may lose detail and have dropouts below 50%.
+/// When scaling down, the higher the scale factor the less effective the [high]
+/// level is. Beyond certain scale level [medium] may provide better visual
+/// result than [high].
 ///
 /// To get high quality when scaling images up and down, or when the scale is
-/// unknown, [medium] is typically a good balanced choice.
+/// unknown, [medium] is typically a good enough choice.
 ///
 /// ![](https://flutter.github.io/assets-for-api-docs/assets/dart-ui/filter_quality.png)
 ///
@@ -846,56 +844,43 @@ enum BlendMode {
 /// See also:
 ///
 ///  * [Paint.filterQuality], which is used to pass [FilterQuality] to the
-///    engine while using drawImage calls on a [Canvas].
-///  * [ImageShader].
-///  * [ImageFilter.matrix].
-///  * [Canvas.drawImage].
-///  * [Canvas.drawImageRect].
-///  * [Canvas.drawImageNine].
-///  * [Canvas.drawAtlas].
+///    engine while painting.
 enum FilterQuality {
-  // This list and the values (order) should be kept in sync with the equivalent list
-  // in lib/ui/painting/image_filter.cc
+  // This list comes from Skia's SkFilterQuality.h and the values (order) should
+  // be kept in sync.
 
-  /// The fastest filtering method, albeit also the lowest quality.
+  /// Fastest possible filtering, albeit also the lowest quality.
   ///
-  /// This value results in a "Nearest Neighbor" algorithm which just
-  /// repeats or eliminates pixels as an image is scaled up or down.
+  /// Typically this implies nearest-neighbor filtering.
   none,
 
   /// Better quality than [none], faster than [medium].
   ///
-  /// This value results in a "Bilinear" algorithm which smoothly
-  /// interpolates between pixels in an image.
+  /// Typically this implies bilinear interpolation.
   low,
 
-  /// The best all around filtering method that is only worse than [high]
-  /// at extremely large scale factors.
+  /// Better quality than [low], faster than [high].
   ///
-  /// This value improves upon the "Bilinear" algorithm specified by [low]
-  /// by utilizing a Mipmap that pre-computes high quality lower resolutions
-  /// of the image at half (and quarter and eighth, etc.) sizes and then
-  /// blends between those to prevent loss of detail at small scale sizes.
+  /// When scaling down images, this is frequently better than [high].
+  ///
+  /// Typically this implies a combination of bilinear interpolation and
+  /// pyramidal parametric pre-filtering (mipmaps).
   ///
   /// {@template dart.ui.filterQuality.seeAlso}
   /// See also:
   ///
   ///  * [FilterQuality] class-level documentation that goes into detail about
-  ///    relative qualities of the constant values.
+  ///    relative qualities of the enum values.
   /// {@endtemplate}
   medium,
 
-  /// Best possible quality when scaling up images by scale factors larger than
-  /// 5-10x.
+  /// Best possible quality when scaling up images.
   ///
-  /// When images are scaled down, this can be worse than [medium] for scales
-  /// smaller than 0.5x, or when animating the scale factor.
+  /// When images are scaled down, this is frequently worse than [medium].
   ///
-  /// This option is also the slowest.
+  /// This option is the slowest.
   ///
-  /// This value results in a standard "Bicubic" algorithm which uses a 3rd order
-  /// equation to smooth the abrupt transitions between pixels while preserving
-  /// some of the sense of an edge and avoiding sharp peaks in the result.
+  /// Typically this implies bicubic interpolation or better.
   ///
   /// {@macro dart.ui.filterQuality.seeAlso}
   high,
@@ -1379,9 +1364,9 @@ class Paint {
     }
   }
 
-  /// Controls the performance vs quality trade-off to use when sampling bitmaps,
-  /// as with an [ImageShader], or when drawing images, as with [Canvas.drawImage],
-  /// [Canvas.drawImageRect], [Canvas.drawImageNine] or [Canvas.drawAtlas].
+  /// Controls the performance vs quality trade-off to use when applying
+  /// filters, such as [maskFilter], or when drawing images, as with
+  /// [Canvas.drawImageRect] or [Canvas.drawImageNine].
   ///
   /// Defaults to [FilterQuality.none].
   // TODO(ianh): verify that the image drawing methods actually respect this
@@ -1626,7 +1611,7 @@ enum PixelFormat {
 ///
 /// A class or method that receives an image object must call [dispose] on the
 /// handle when it is no longer needed. To create a shareable reference to the
-/// underlying image, call [clone]. The method or object that receives
+/// underlying image, call [clone]. The method or object that recieves
 /// the new instance will then be responsible for disposing it, and the
 /// underlying image itself will be disposed when all outstanding handles are
 /// disposed.
@@ -1742,7 +1727,7 @@ class Image {
   /// It is safe to pass an [Image] handle to another object or method if the
   /// current holder no longer needs it.
   ///
-  /// To check whether two [Image] references are referring to the same
+  /// To check whether two [Image] references are refering to the same
   /// underlying image memory, use [isCloneOf] rather than the equality operator
   /// or [identical].
   ///
@@ -3691,13 +3676,9 @@ class ImageShader extends Shader {
   /// tile. The second and third arguments specify the [TileMode] for the x
   /// direction and y direction respectively. The fourth argument gives the
   /// matrix to apply to the effect. All the arguments are required and must not
-  /// be null, except for [filterQuality]. If [filterQuality] is not specified
-  /// at construction time it will be deduced from the environment where it is used,
-  /// such as from [Paint.filterQuality].
+  /// be null.
   @pragma('vm:entry-point')
-  ImageShader(Image image, TileMode tmx, TileMode tmy, Float64List matrix4, {
-    FilterQuality? filterQuality,
-  }) :
+  ImageShader(Image image, TileMode tmx, TileMode tmy, Float64List matrix4) :
     assert(image != null), // image is checked on the engine side
     assert(tmx != null),
     assert(tmy != null),
@@ -3706,10 +3687,10 @@ class ImageShader extends Shader {
     if (matrix4.length != 16)
       throw ArgumentError('"matrix4" must have 16 entries.');
     _constructor();
-    _initWithImage(image._image, tmx.index, tmy.index, filterQuality?.index ?? -1, matrix4);
+    _initWithImage(image._image, tmx.index, tmy.index, matrix4);
   }
   void _constructor() native 'ImageShader_constructor';
-  void _initWithImage(_Image image, int tmx, int tmy, int filterQualityIndex, Float64List matrix4) native 'ImageShader_initWithImage';
+  void _initWithImage(_Image image, int tmx, int tmy, Float64List matrix4) native 'ImageShader_initWithImage';
 }
 
 /// Defines how a list of points is interpreted when drawing a set of triangles.
@@ -4306,14 +4287,13 @@ class Canvas extends NativeFieldWrapperClass2 {
     assert(image != null); // image is checked on the engine side
     assert(_offsetIsValid(offset));
     assert(paint != null);
-    _drawImage(image._image, offset.dx, offset.dy, paint._objects, paint._data, paint.filterQuality.index);
+    _drawImage(image._image, offset.dx, offset.dy, paint._objects, paint._data);
   }
   void _drawImage(_Image image,
                   double x,
                   double y,
                   List<dynamic>? paintObjects,
-                  ByteData paintData,
-                  int filterQualityIndex) native 'Canvas_drawImage';
+                  ByteData paintData) native 'Canvas_drawImage';
 
   /// Draws the subset of the given image described by the `src` argument into
   /// the canvas in the axis-aligned rectangle given by the `dst` argument.
@@ -4339,8 +4319,7 @@ class Canvas extends NativeFieldWrapperClass2 {
                    dst.right,
                    dst.bottom,
                    paint._objects,
-                   paint._data,
-                   paint.filterQuality.index);
+                   paint._data);
   }
   void _drawImageRect(_Image image,
                       double srcLeft,
@@ -4352,8 +4331,7 @@ class Canvas extends NativeFieldWrapperClass2 {
                       double dstRight,
                       double dstBottom,
                       List<dynamic>? paintObjects,
-                      ByteData paintData,
-                      int filterQualityIndex) native 'Canvas_drawImageRect';
+                      ByteData paintData) native 'Canvas_drawImageRect';
 
   /// Draws the given [Image] into the canvas using the given [Paint].
   ///
@@ -4383,8 +4361,7 @@ class Canvas extends NativeFieldWrapperClass2 {
                    dst.right,
                    dst.bottom,
                    paint._objects,
-                   paint._data,
-                   paint.filterQuality.index);
+                   paint._data);
   }
   void _drawImageNine(_Image image,
                       double centerLeft,
@@ -4396,8 +4373,7 @@ class Canvas extends NativeFieldWrapperClass2 {
                       double dstRight,
                       double dstBottom,
                       List<dynamic>? paintObjects,
-                      ByteData paintData,
-                      int filterQualityIndex) native 'Canvas_drawImageNine';
+                      ByteData paintData) native 'Canvas_drawImageNine';
 
   /// Draw the given picture onto the canvas. To create a picture, see
   /// [PictureRecorder].
@@ -4660,10 +4636,9 @@ class Canvas extends NativeFieldWrapperClass2 {
 
     final Int32List? colorBuffer = (colors == null || colors.isEmpty) ? null : _encodeColorList(colors);
     final Float32List? cullRectBuffer = cullRect?._value32;
-    final int qualityIndex = paint.filterQuality.index;
 
     _drawAtlas(
-      paint._objects, paint._data, qualityIndex, atlas._image, rstTransformBuffer, rectBuffer,
+      paint._objects, paint._data, atlas._image, rstTransformBuffer, rectBuffer,
       colorBuffer, (blendMode ?? BlendMode.src).index, cullRectBuffer
     );
   }
@@ -4829,17 +4804,15 @@ class Canvas extends NativeFieldWrapperClass2 {
       throw ArgumentError('"rstTransforms" and "rects" lengths must be a multiple of four.');
     if (colors != null && colors.length * 4 != rectCount)
       throw ArgumentError('If non-null, "colors" length must be one fourth the length of "rstTransforms" and "rects".');
-    final int qualityIndex = paint.filterQuality.index;
 
     _drawAtlas(
-      paint._objects, paint._data, qualityIndex, atlas._image, rstTransforms, rects,
+      paint._objects, paint._data, atlas._image, rstTransforms, rects,
       colors, (blendMode ?? BlendMode.src).index, cullRect?._value32
     );
   }
 
   void _drawAtlas(List<dynamic>? paintObjects,
                   ByteData paintData,
-                  int filterQualityIndex,
                   _Image atlas,
                   Float32List rstTransforms,
                   Float32List rects,

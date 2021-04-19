@@ -211,10 +211,8 @@ void SceneBuilder::pushImageFilter(Dart_Handle layer_handle,
 
 void SceneBuilder::pushBackdropFilter(Dart_Handle layer_handle,
                                       ImageFilter* filter,
-                                      int blendMode,
                                       fml::RefPtr<EngineLayer> oldLayer) {
-  auto layer = std::make_shared<flutter::BackdropFilterLayer>(
-      filter->filter(), static_cast<SkBlendMode>(blendMode));
+  auto layer = std::make_shared<flutter::BackdropFilterLayer>(filter->filter());
   PushLayer(layer);
   EngineLayer::MakeRetained(layer_handle, layer);
 
@@ -230,13 +228,13 @@ void SceneBuilder::pushShaderMask(Dart_Handle layer_handle,
                                   double maskRectTop,
                                   double maskRectBottom,
                                   int blendMode,
-                                  int filterQualityIndex,
                                   fml::RefPtr<EngineLayer> oldLayer) {
   SkRect rect = SkRect::MakeLTRB(maskRectLeft, maskRectTop, maskRectRight,
                                  maskRectBottom);
-  auto sampling = ImageFilter::SamplingFromIndex(filterQualityIndex);
+  // TODO: Quality come from the caller
+  SkFilterQuality quality = kLow_SkFilterQuality;
   auto layer = std::make_shared<flutter::ShaderMaskLayer>(
-      shader->shader(sampling), rect, static_cast<SkBlendMode>(blendMode));
+      shader->shader(quality), rect, static_cast<SkBlendMode>(blendMode));
   PushLayer(layer);
   EngineLayer::MakeRetained(layer_handle, layer);
 
@@ -288,8 +286,10 @@ void SceneBuilder::addTexture(double dx,
                               double height,
                               int64_t textureId,
                               bool freeze,
-                              int filterQualityIndex) {
-  auto sampling = ImageFilter::SamplingFromIndex(filterQualityIndex);
+                              int filterQuality) {
+  // TODO: take sampling directly from caller: filter-quality is deprecated
+  auto sampling = SkSamplingOptions(static_cast<SkFilterQuality>(filterQuality),
+                                    SkSamplingOptions::kMedium_asMipmapLinear);
   auto layer = std::make_unique<flutter::TextureLayer>(
       SkPoint::Make(dx, dy), SkSize::Make(width, height), textureId, freeze,
       sampling);

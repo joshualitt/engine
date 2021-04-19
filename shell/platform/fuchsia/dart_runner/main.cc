@@ -4,7 +4,6 @@
 
 #include <lib/async-loop/cpp/loop.h>
 #include <lib/async-loop/default.h>
-#include <lib/sys/inspect/cpp/component.h>
 #include <lib/syslog/global.h>
 #include <lib/trace-provider/provider.h>
 #include <lib/trace/event.h>
@@ -35,14 +34,6 @@ static void RegisterProfilerSymbols(const char* symbols_path,
 int main(int argc, const char** argv) {
   async::Loop loop(&kAsyncLoopConfigAttachToCurrentThread);
 
-  // Create our component context which is served later.
-  auto context = sys::ComponentContext::Create();
-  sys::ComponentInspector inspector(context.get());
-
-  inspect::Node& root = inspector.inspector()->GetRoot();
-
-  dart::SetDartVmNode(std::make_unique<inspect::Node>(root.CreateChild("vm")));
-
   std::unique_ptr<trace::TraceProviderWithFdio> provider;
   {
     bool already_started;
@@ -60,11 +51,7 @@ int main(int argc, const char** argv) {
 #endif  // !defined(DART_PRODUCT)
 
   dart_utils::RunnerTemp runner_temp;
-  dart_runner::DartRunner runner(context.get());
-
-  // Wait to serve until we have finished all of our setup.
-  context->outgoing()->ServeFromStartupInfo();
-
+  dart_runner::DartRunner runner(dart::ComponentContext());
   loop.Run();
   return 0;
 }

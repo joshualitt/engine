@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// @dart = 2.12
 part of engine;
 
 class SurfaceSceneBuilder implements ui.SceneBuilder {
@@ -209,16 +210,12 @@ class SurfaceSceneBuilder implements ui.SceneBuilder {
   /// Pushes a backdrop filter operation onto the operation stack.
   ///
   /// The given filter is applied to the current contents of the scene prior to
-  /// rasterizing the child layers.
-  ///
-  /// The [blendMode] argument is required for [ui.SceneBuilder] compatibility, but is
-  /// ignored by the DOM renderer.
+  /// rasterizing the given objects.
   ///
   /// See [pop] for details about the operation stack.
   @override
   ui.BackdropFilterEngineLayer pushBackdropFilter(
     ui.ImageFilter filter, {
-    ui.BlendMode blendMode = ui.BlendMode.srcOver,
     ui.BackdropFilterEngineLayer? oldLayer,
   }) {
     return _pushSurface<PersistedBackdropFilter>(PersistedBackdropFilter(
@@ -237,12 +234,10 @@ class SurfaceSceneBuilder implements ui.SceneBuilder {
     ui.Rect maskRect,
     ui.BlendMode blendMode, {
     ui.ShaderMaskEngineLayer? oldLayer,
-    ui.FilterQuality filterQuality = ui.FilterQuality.low,
   }) {
     assert(blendMode != null); // ignore: unnecessary_null_comparison
     return _pushSurface<PersistedShaderMask>(PersistedShaderMask(
-        oldLayer as PersistedShaderMask?,
-        shader, maskRect, blendMode, filterQuality));
+        oldLayer as PersistedShaderMask?, shader, maskRect, blendMode));
   }
 
   /// Pushes a physical layer operation for an arbitrary shape onto the
@@ -389,11 +384,12 @@ class SurfaceSceneBuilder implements ui.SceneBuilder {
     bool freeze = false,
     ui.FilterQuality filterQuality = ui.FilterQuality.low,
   }) {
-    _addTexture(offset.dx, offset.dy, width, height, textureId, filterQuality);
+    _addTexture(
+        offset.dx, offset.dy, width, height, textureId, filterQuality.index);
   }
 
   void _addTexture(double dx, double dy, double width, double height,
-      int textureId, ui.FilterQuality filterQuality) {
+      int textureId, int filterQuality) {
     // In test mode, allow this to be a no-op.
     if (!ui.debugEmulateFlutterTesterEnvironment) {
       throw UnimplementedError('Textures are not supported in Flutter Web');

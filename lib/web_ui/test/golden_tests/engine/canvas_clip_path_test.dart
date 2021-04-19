@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// @dart = 2.6
 import 'dart:html' as html;
 import 'dart:js_util' as js_util;
 
@@ -10,16 +11,38 @@ import 'package:test/test.dart';
 import 'package:ui/ui.dart' hide TextStyle;
 import 'package:ui/src/engine.dart' as engine;
 
-import 'screenshot.dart';
+import 'package:web_engine_tester/golden_tester.dart';
 
 void main() {
   internalBootstrapBrowserTest(() => testMain);
 }
 
 void testMain() async {
-  const double screenWidth = 500.0;
-  const double screenHeight = 500.0;
+  const double screenWidth = 600.0;
+  const double screenHeight = 800.0;
   const Rect screenRect = Rect.fromLTWH(0, 0, screenWidth, screenHeight);
+
+  // Commit a recording canvas to a bitmap, and compare with the expected
+  Future<void> _checkScreenshot(engine.RecordingCanvas rc, String fileName,
+      {Rect region = const Rect.fromLTWH(0, 0, 500, 500)}) async {
+    final engine.EngineCanvas engineCanvas = engine.BitmapCanvas(screenRect,
+        engine.RenderStrategy());
+
+    rc.endRecording();
+    rc.apply(engineCanvas, screenRect);
+
+    // Wrap in <flt-scene> so that our CSS selectors kick in.
+    final html.Element sceneElement = html.Element.tag('flt-scene');
+    try {
+      sceneElement.append(engineCanvas.rootElement);
+      html.document.body.append(sceneElement);
+      await matchGoldenFile('$fileName.png', region: region, maxDiffRatePercent: 0.0);
+    } finally {
+      // The page is reused across tests, so remove the element after taking the
+      // Scuba screenshot.
+      sceneElement.remove();
+    }
+  }
 
   setUp(() async {
     debugEmulateFlutterTesterEnvironment = true;
@@ -32,7 +55,7 @@ void testMain() async {
   // Should clip image with oval.
   test('Clips image with oval clip path', () async {
     final engine.RecordingCanvas rc =
-        engine.RecordingCanvas(const Rect.fromLTRB(0, 0, 500, 500));
+        engine.RecordingCanvas(const Rect.fromLTRB(0, 0, 400, 300));
     rc.save();
     Image testImage = createTestImage();
     double testWidth = testImage.width.toDouble();
@@ -41,16 +64,15 @@ void testMain() async {
     path.addOval(Rect.fromLTWH(100, 30, testWidth, testHeight));
     rc.clipPath(path);
     rc.drawImageRect(testImage, Rect.fromLTRB(0, 0, testWidth, testHeight),
-        Rect.fromLTWH(100, 30, testWidth, testHeight), engine.SurfacePaint());
+        Rect.fromLTWH(100, 30, testWidth, testHeight), Paint());
     rc.restore();
-    await canvasScreenshot(rc, 'image_clipped_by_oval',
-      region: screenRect);
+    await _checkScreenshot(rc, 'image_clipped_by_oval');
   });
 
   // Regression test for https://github.com/flutter/flutter/issues/48683
   test('Clips triangle with oval clip path', () async {
     final engine.RecordingCanvas rc =
-        engine.RecordingCanvas(const Rect.fromLTRB(0, 0, 500, 500));
+        engine.RecordingCanvas(const Rect.fromLTRB(0, 0, 400, 300));
     rc.save();
     double testWidth = 200;
     double testHeight = 150;
@@ -64,65 +86,11 @@ void testMain() async {
     paintPath.close();
     rc.drawPath(
         paintPath,
-        engine.SurfacePaint()
+        Paint()
           ..color = Color(0xFF00FF00)
           ..style = PaintingStyle.fill);
     rc.restore();
-    await canvasScreenshot(rc, 'triangle_clipped_by_oval',
-      region: screenRect);
-  });
-
-  // Regression test for https://github.com/flutter/flutter/issues/78782
-  test('Clips on Safari when clip bounds off screen', () async {
-    final engine.RecordingCanvas rc =
-    engine.RecordingCanvas(const Rect.fromLTRB(0, 0, 500, 500));
-    rc.save();
-    double testWidth = 200;
-    double testHeight = 150;
-
-    final Path paintPath = new Path();
-    paintPath.addRect(Rect.fromLTWH(-50, 0, testWidth, testHeight));
-    paintPath.close();
-    rc.drawPath(paintPath,
-        engine.SurfacePaint()
-          ..color = Color(0xFF000000)
-          ..style = PaintingStyle.stroke);
-
-    final Path path = Path();
-    path.moveTo(-200, 0);
-    path.lineTo(100, 75);
-    path.lineTo(-200, 150);
-    path.close();
-    rc.clipPath(path);
-    rc.drawImageRect(createTestImage(), Rect.fromLTRB(0, 0, testWidth, testHeight),
-        Rect.fromLTWH(-50, 0, testWidth, testHeight), engine.SurfacePaint());
-    rc.restore();
-    await canvasScreenshot(rc, 'image_clipped_by_triangle_off_screen');
-  });
-
-  // Tests oval clipping using border radius 50%.
-  test('Clips against oval', () async {
-    final engine.RecordingCanvas rc =
-    engine.RecordingCanvas(const Rect.fromLTRB(0, 0, 500, 500));
-    rc.save();
-    double testWidth = 200;
-    double testHeight = 150;
-
-    final Path paintPath = new Path();
-    paintPath.addRect(Rect.fromLTWH(-50, 0, testWidth, testHeight));
-    paintPath.close();
-    rc.drawPath(paintPath,
-        engine.SurfacePaint()
-          ..color = Color(0xFF000000)
-          ..style = PaintingStyle.stroke);
-
-    final Path path = Path();
-    path.addOval(Rect.fromLTRB(-200, 0, 100, 150));
-    rc.clipPath(path);
-    rc.drawImageRect(createTestImage(), Rect.fromLTRB(0, 0, testWidth, testHeight),
-        Rect.fromLTWH(-50, 0, testWidth, testHeight), engine.SurfacePaint());
-    rc.restore();
-    await canvasScreenshot(rc, 'image_clipped_by_oval_path');
+    await _checkScreenshot(rc, 'triangle_clipped_by_oval');
   });
 }
 

@@ -61,8 +61,6 @@ source_set("flutter_framework_source") {
     "framework/Source/FlutterBackingStoreData.mm",
     "framework/Source/FlutterChannelKeyResponder.h",
     "framework/Source/FlutterChannelKeyResponder.mm",
-    "framework/Source/FlutterCompositor.h",
-    "framework/Source/FlutterCompositor.mm",
     "framework/Source/FlutterDartProject.mm",
     "framework/Source/FlutterDartProject_Internal.h",
     "framework/Source/FlutterEmbedderKeyResponder.h",

@@ -6,11 +6,6 @@
 
 #import "flutter/shell/platform/darwin/ios/framework/Source/FlutterDartProject_Internal.h"
 
-#include <syslog.h>
-
-#include <sstream>
-#include <string>
-
 #include "flutter/common/constants.h"
 #include "flutter/common/task_runners.h"
 #include "flutter/fml/mapping.h"
@@ -60,18 +55,6 @@ flutter::Settings FLTDefaultSettingsForBundle(NSBundle* bundle) {
 
   settings.task_observer_remove = [](intptr_t key) {
     fml::MessageLoop::GetCurrent().RemoveTaskObserver(key);
-  };
-
-  settings.log_message_callback = [](const std::string& tag, const std::string& message) {
-    // TODO(cbracken): replace this with os_log-based approach.
-    // https://github.com/flutter/flutter/issues/44030
-    std::stringstream stream;
-    if (tag.size() > 0) {
-      stream << tag << ": ";
-    }
-    stream << message;
-    std::string log = stream.str();
-    syslog(LOG_ALERT, "%.*s", (int)log.size(), log.c_str());
   };
 
   // The command line arguments may not always be complete. If they aren't, attempt to fill in
@@ -151,10 +134,12 @@ flutter::Settings FLTDefaultSettingsForBundle(NSBundle* bundle) {
   }
 
   // Domain network configuration
-  // Disabled in https://github.com/flutter/flutter/issues/72723.
-  // Re-enable in https://github.com/flutter/flutter/issues/54448.
-  settings.may_insecurely_connect_to_all_domains = true;
-  settings.domain_network_policy = "";
+  NSDictionary* appTransportSecurity =
+      [mainBundle objectForInfoDictionaryKey:@"NSAppTransportSecurity"];
+  settings.may_insecurely_connect_to_all_domains =
+      [FlutterDartProject allowsArbitraryLoads:appTransportSecurity];
+  settings.domain_network_policy =
+      [FlutterDartProject domainNetworkPolicy:appTransportSecurity].UTF8String;
 
   // SkParagraph text layout library
   NSNumber* enableSkParagraph = [mainBundle objectForInfoDictionaryKey:@"FLTEnableSkParagraph"];

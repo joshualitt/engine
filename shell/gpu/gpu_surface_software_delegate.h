@@ -21,7 +21,7 @@ namespace flutter {
 ///             rasterizer needs to allocate and present the software backing
 ///             store.
 ///
-/// @see        |IOSSurfaceSoftware|, |AndroidSurfaceSoftware|,
+/// @see        |IOSurfaceSoftware|, |AndroidSurfaceSoftware|,
 ///             |EmbedderSurfaceSoftware|.
 ///
 class GPUSurfaceSoftwareDelegate {

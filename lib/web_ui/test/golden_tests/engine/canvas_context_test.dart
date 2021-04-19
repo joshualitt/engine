@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// @dart = 2.6
 import 'dart:html' as html;
 
 import 'package:test/bootstrap/browser.dart';
@@ -34,7 +35,7 @@ void testMain() async {
     final html.Element sceneElement = html.Element.tag('flt-scene');
     try {
       sceneElement.append(engineCanvas.rootElement);
-      html.document.body!.append(sceneElement);
+      html.document.body.append(sceneElement);
       // TODO(yjbanov): 10% diff rate is excessive. Update goldens.
       await matchGoldenFile('$fileName.png', region: region, maxDiffRatePercent: 10);
     } finally {
@@ -56,7 +57,7 @@ void testMain() async {
   test('Clips image with oval clip path', () async {
     final engine.RecordingCanvas rc =
         engine.RecordingCanvas(const Rect.fromLTRB(0, 0, 400, 300));
-    final engine.SurfacePaint paint = Paint() as engine.SurfacePaint
+    final Paint paint = Paint()
       ..color = Color(0xFF00FF00)
       ..style = PaintingStyle.fill;
     rc.save();
@@ -97,11 +98,11 @@ void testMain() async {
     rc.save();
     rc.restore();
     // The rectangle should be clipped against oval.
-    rc.drawRect(Rect.fromLTWH(0, 0, 300, 300), badPaint as engine.SurfacePaint);
+    rc.drawRect(Rect.fromLTWH(0, 0, 300, 300), badPaint);
     rc.restore();
     // The rectangle should paint without clipping since we restored
     // context.
-    rc.drawRect(Rect.fromLTWH(0, 0, 200, 200), goodPaint as engine.SurfacePaint);
+    rc.drawRect(Rect.fromLTWH(0, 0, 200, 200), goodPaint);
     await _checkScreenshot(rc, 'context_save_restore_clip');
   });
 }

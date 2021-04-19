@@ -72,11 +72,6 @@ class FlutterWindowsView : public WindowBindingHandlerDelegate,
   bool MakeResourceCurrent();
   bool SwapBuffers();
 
-  // Callback for presenting a software bitmap.
-  bool PresentSoftwareBitmap(const void* allocation,
-                             size_t row_bytes,
-                             size_t height);
-
   // Send initial bounds to embedder.  Must occur after engine has initialized.
   void SendInitialBounds();
 
@@ -87,24 +82,20 @@ class FlutterWindowsView : public WindowBindingHandlerDelegate,
   void OnWindowSizeChanged(size_t width, size_t height) override;
 
   // |WindowBindingHandlerDelegate|
-  void OnPointerMove(double x,
-                     double y,
-                     FlutterPointerDeviceKind device_kind) override;
+  void OnPointerMove(double x, double y) override;
 
   // |WindowBindingHandlerDelegate|
   void OnPointerDown(double x,
                      double y,
-                     FlutterPointerDeviceKind device_kind,
                      FlutterPointerMouseButtons button) override;
 
   // |WindowBindingHandlerDelegate|
   void OnPointerUp(double x,
                    double y,
-                   FlutterPointerDeviceKind device_kind,
                    FlutterPointerMouseButtons button) override;
 
   // |WindowBindingHandlerDelegate|
-  void OnPointerLeave(FlutterPointerDeviceKind device_kind) override;
+  void OnPointerLeave() override;
 
   // |WindowBindingHandlerDelegate|
   void OnText(const std::u16string&) override;
@@ -182,24 +173,20 @@ class FlutterWindowsView : public WindowBindingHandlerDelegate,
   void SendWindowMetrics(size_t width, size_t height, double dpiscale) const;
 
   // Reports a mouse movement to Flutter engine.
-  void SendPointerMove(double x,
-                       double y,
-                       FlutterPointerDeviceKind device_kind);
+  void SendPointerMove(double x, double y);
 
   // Reports mouse press to Flutter engine.
-  void SendPointerDown(double x,
-                       double y,
-                       FlutterPointerDeviceKind device_kind);
+  void SendPointerDown(double x, double y);
 
   // Reports mouse release to Flutter engine.
-  void SendPointerUp(double x, double y, FlutterPointerDeviceKind device_kind);
+  void SendPointerUp(double x, double y);
 
   // Reports mouse left the window client area.
   //
   // Win32 api doesn't have "mouse enter" event. Therefore, there is no
   // SendPointerEnter method. A mouse enter event is tracked then the "move"
   // event is called.
-  void SendPointerLeave(FlutterPointerDeviceKind device_kind);
+  void SendPointerLeave();
 
   // Reports a keyboard character to Flutter engine.
   void SendText(const std::u16string&);
@@ -276,6 +263,10 @@ class FlutterWindowsView : public WindowBindingHandlerDelegate,
   // surface_manager for creation of render surfaces and bound to the physical
   // os window.
   std::unique_ptr<WindowsRenderTarget> render_target_;
+
+  // An object used for intializing Angle and creating / destroying render
+  // surfaces. Surface creation functionality requires a valid render_target.
+  std::unique_ptr<AngleSurfaceManager> surface_manager_;
 
   // The engine associated with this view.
   std::unique_ptr<FlutterWindowsEngine> engine_;

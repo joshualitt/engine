@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// @dart = 2.6
 import 'dart:html' as html;
 
 import 'package:test/bootstrap/browser.dart';
@@ -18,7 +19,7 @@ void main() {
 void testMain() async {
   final Rect region = Rect.fromLTWH(0, 0, 300, 300);
 
-  late BitmapCanvas canvas;
+  BitmapCanvas canvas;
 
   setUp(() {
     canvas = BitmapCanvas(region, RenderStrategy());
@@ -32,7 +33,7 @@ void testMain() async {
 
     paintLines(canvas);
 
-    html.document.body!.append(canvas.rootElement);
+    html.document.body.append(canvas.rootElement);
     await matchGoldenFile('canvas_lines_thickness.png', region: region);
   });
 }

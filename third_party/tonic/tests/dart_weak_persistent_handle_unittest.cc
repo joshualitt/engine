@@ -8,10 +8,6 @@
 namespace flutter {
 namespace testing {
 
-namespace {
-void NopFinalizer(void* isolate_callback_data, void* peer) {}
-}  // namespace
-
 class DartWeakPersistentHandle : public FixtureTest {
  public:
   DartWeakPersistentHandle()
@@ -29,7 +25,7 @@ class DartWeakPersistentHandle : public FixtureTest {
                                             thread, thread, thread);
     auto isolate =
         RunDartCodeInIsolate(vm_, settings_, single_threaded_task_runner,
-                             entrypoint, {}, GetDefaultKernelFilePath());
+                             entrypoint, {}, GetFixturesPath());
     if (!isolate || isolate->get()->GetPhase() != DartIsolate::Phase::Running) {
       return false;
     }
@@ -48,6 +44,8 @@ class DartWeakPersistentHandle : public FixtureTest {
   std::unique_ptr<AutoIsolateShutdown> running_isolate_;
   FML_DISALLOW_COPY_AND_ASSIGN(DartWeakPersistentHandle);
 };
+
+void NopFinalizer(void* isolate_callback_data, void* peer) {}
 
 TEST_F(DartWeakPersistentHandle, ClearImmediately) {
   auto weak_persistent_value = tonic::DartWeakPersistentValue();

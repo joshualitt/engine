@@ -1235,30 +1235,6 @@ static FlutterAutofillType autofillTypeOf(NSDictionary* configuration) {
 @end
 
 @interface FlutterTextInputPlugin ()
-- (void)enableActiveViewAccessibility;
-@end
-
-@interface FlutterTimerProxy : NSObject
-@property(nonatomic, assign) FlutterTextInputPlugin* target;
-@end
-
-@implementation FlutterTimerProxy
-
-+ (instancetype)proxyWithTarget:(FlutterTextInputPlugin*)target {
-  FlutterTimerProxy* proxy = [[self new] autorelease];
-  if (proxy) {
-    proxy.target = target;
-  }
-  return proxy;
-}
-
-- (void)enableActiveViewAccessibility {
-  [self.target enableActiveViewAccessibility];
-}
-
-@end
-
-@interface FlutterTextInputPlugin ()
 @property(nonatomic, strong) FlutterTextInputView* reusableInputView;
 
 // The current password-autofillable input fields that have yet to be saved.
@@ -1290,7 +1266,6 @@ static FlutterAutofillType autofillTypeOf(NSDictionary* configuration) {
 
 - (void)dealloc {
   [self hideTextInput];
-  _activeView.textInputDelegate = nil;
   [_reusableInputView release];
   [_activeView release];
   [_inputHider release];
@@ -1369,15 +1344,15 @@ static FlutterAutofillType autofillTypeOf(NSDictionary* configuration) {
   if (!_enableFlutterTextInputViewAccessibilityTimer) {
     _enableFlutterTextInputViewAccessibilityTimer =
         [[NSTimer scheduledTimerWithTimeInterval:kUITextInputAccessibilityEnablingDelaySeconds
-                                          target:[FlutterTimerProxy proxyWithTarget:self]
-                                        selector:@selector(enableActiveViewAccessibility)
+                                          target:self
+                                        selector:@selector(enableActiveViewAccessibility:)
                                         userInfo:nil
                                          repeats:NO] retain];
   }
   [_activeView becomeFirstResponder];
 }
 
-- (void)enableActiveViewAccessibility {
+- (void)enableActiveViewAccessibility:(NSTimer*)time {
   if (_activeView.isFirstResponder) {
     _activeView.accessibilityEnabled = YES;
   }

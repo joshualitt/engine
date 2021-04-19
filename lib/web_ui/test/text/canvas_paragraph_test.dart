@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// @dart = 2.12
 import 'package:test/bootstrap/browser.dart';
 import 'package:test/test.dart';
 import 'package:ui/src/engine.dart';
@@ -319,7 +320,7 @@ void testMain() async {
       })
         ..layout(constrain(double.infinity));
 
-      // Above the line, at the beginning.
+      // Above the line.
       expect(
         paragraph.getPositionForOffset(ui.Offset(0, -5)),
         pos(0, ui.TextAffinity.downstream),
@@ -334,9 +335,9 @@ void testMain() async {
         paragraph.getPositionForOffset(ui.Offset(0, 5)),
         pos(0, ui.TextAffinity.downstream),
       );
-      // Below the line, at the end.
+      // Below the line.
       expect(
-        paragraph.getPositionForOffset(ui.Offset(130, 12)),
+        paragraph.getPositionForOffset(ui.Offset(0, 12)),
         pos(13, ui.TextAffinity.upstream),
       );
       // At the end of the line.
@@ -347,16 +348,6 @@ void testMain() async {
       // On the left half of "p" in "ipsum".
       expect(
         paragraph.getPositionForOffset(ui.Offset(74, 5)),
-        pos(7, ui.TextAffinity.downstream),
-      );
-      // On the left half of "p" in "ipsum" (above the line).
-      expect(
-        paragraph.getPositionForOffset(ui.Offset(74, -5)),
-        pos(7, ui.TextAffinity.downstream),
-      );
-      // On the left half of "p" in "ipsum" (below the line).
-      expect(
-        paragraph.getPositionForOffset(ui.Offset(74, 15)),
         pos(7, ui.TextAffinity.downstream),
       );
       // On the right half of "p" in "ipsum".
@@ -387,7 +378,7 @@ void testMain() async {
       //   "ipsum "
       //   "dolor sit"
 
-      // Above the first line, at the beginning.
+      // Above the first line.
       expect(
         paragraph.getPositionForOffset(ui.Offset(0, -5)),
         pos(0, ui.TextAffinity.downstream),
@@ -405,11 +396,6 @@ void testMain() async {
       // At the end of the first line.
       expect(
         paragraph.getPositionForOffset(ui.Offset(60, 5)),
-        pos(6, ui.TextAffinity.upstream),
-      );
-      // At the end of the first line (above the line).
-      expect(
-        paragraph.getPositionForOffset(ui.Offset(60, -5)),
         pos(6, ui.TextAffinity.upstream),
       );
       // After the end of the first line to the right.
@@ -444,9 +430,9 @@ void testMain() async {
         pos(12, ui.TextAffinity.upstream),
       );
 
-      // Below the third line "dolor sit", at the end.
+      // Below the third line "dolor sit".
       expect(
-        paragraph.getPositionForOffset(ui.Offset(90, 40)),
+        paragraph.getPositionForOffset(ui.Offset(0, 40)),
         pos(21, ui.TextAffinity.upstream),
       );
       // At the end of the third line.
@@ -487,7 +473,7 @@ void testMain() async {
       //   "ipsum "
       //   "dolor sit"
 
-      // Above the first line, at the beginning.
+      // Above the first line.
       expect(
         paragraph.getPositionForOffset(ui.Offset(0, -5)),
         pos(0, ui.TextAffinity.downstream),
@@ -534,9 +520,9 @@ void testMain() async {
         pos(12, ui.TextAffinity.upstream),
       );
 
-      // Below the third line "dolor sit", at the end.
+      // Below the third line "dolor sit".
       expect(
-        paragraph.getPositionForOffset(ui.Offset(90, 40)),
+        paragraph.getPositionForOffset(ui.Offset(0, 40)),
         pos(21, ui.TextAffinity.upstream),
       );
       // At the end of the third line.

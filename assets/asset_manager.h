@@ -9,7 +9,6 @@
 #include <memory>
 #include <string>
 
-#include <optional>
 #include "flutter/assets/asset_resolver.h"
 #include "flutter/fml/macros.h"
 #include "flutter/fml/memory/ref_counted.h"
@@ -71,8 +70,7 @@ class AssetManager final : public AssetResolver {
 
   // |AssetResolver|
   std::vector<std::unique_ptr<fml::Mapping>> GetAsMappings(
-      const std::string& asset_pattern,
-      const std::optional<std::string>& subdir) const override;
+      const std::string& asset_pattern) const override;
 
  private:
   std::deque<std::unique_ptr<AssetResolver>> resolvers_;
