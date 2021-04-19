@@ -2,7 +2,6 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-// @dart = 2.12
 part of engine;
 
 /// Set this flag to `true` to cause the engine to visualize the semantics tree
@@ -1153,7 +1152,7 @@ class EngineSemanticsOwner {
 
   /// Declares that the [child] must be attached to the [parent].
   ///
-  /// Attachments take precendence over detachments (see [_detachObject]). This
+  /// Attachments take precedence over detachments (see [_detachObject]). This
   /// allows the same node to be detached from one parent in the tree and
   /// reattached to another parent.
   void _attachObject({required SemanticsObject parent, required SemanticsObject child}) {

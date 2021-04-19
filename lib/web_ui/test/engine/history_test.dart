@@ -2,7 +2,6 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-// @dart = 2.12
 @TestOn('!safari')
 // TODO(nurhan): https://github.com/flutter/flutter/issues/51169
 
@@ -279,7 +278,7 @@ void testMain() {
         // TODO(nurhan): https://github.com/flutter/flutter/issues/50836
         skip: browserEngine == BrowserEngine.edge);
 
-    test('browser back button push route infromation correctly', () async {
+    test('browser back button push route information correctly', () async {
       final TestUrlStrategy strategy = TestUrlStrategy.fromEntry(
         TestHistoryEntry('initial state', null, '/home'),
       );

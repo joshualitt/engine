@@ -2,6 +2,15 @@
   "program": {
     "binary": "bin/app"
   },
+  "facets": {
+    "fuchsia.test": {
+      "system-services": [
+        "fuchsia.scenic.allocation.Allocator",
+        "fuchsia.sysmem.Allocator",
+        "fuchsia.vulkan.loader.Loader"
+      ]
+    }
+  },
   "sandbox": {
     "features": [
       "vulkan",
@@ -17,6 +26,7 @@
       "fuchsia.logger.LogSink",
       "fuchsia.process.Launcher",
       "fuchsia.settings.Intl",
+      "fuchsia.scenic.allocation.Allocator",
       "fuchsia.sysmem.Allocator",
       "fuchsia.tracing.provider.Registry",
       "fuchsia.ui.input3.Keyboard",
